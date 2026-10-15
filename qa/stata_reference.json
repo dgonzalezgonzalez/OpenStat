@@ -1,0 +1,237 @@
+{
+  "scope": "Synthetic fixture reference only; no full compatibility claim",
+  "cases": [
+    {
+      "case": "data",
+      "sha256": "35f1afdf07a0fff510a1d2b14e78543c69f19a9bc362b2448703082d6dfb78f0",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 1.1751,
+      "scalars": {
+        "n": 7.0,
+        "mean": 9.4285714285714,
+        "sd": 5.1269595556932,
+        "minimum": 2.0,
+        "maximum": 16.0,
+        "group_mean": 8.0,
+        "greater_than_10": 4.0,
+        "nonmissing": 7.0,
+        "missing": 1.0,
+        "remaining": 5.0
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "macros",
+      "sha256": "cc901cbfab80c75df7669096eadb88eb2b1e45854dfa74908ee4be9a5d11ad20",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 1.3226,
+      "scalars": {
+        "total": 18.0,
+        "program": 14.0,
+        "captured_rc": 199.0,
+        "foreach_count": 3.0
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "regression",
+      "sha256": "97f94f590f0f6d4155de447ea06bc2b7da00789c2632cab76ae4248b6f990886",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 4.3363,
+      "scalars": {
+        "b_x": 1.9787234042553,
+        "b_z": 0.48936170212766,
+        "b_cons": 1.6489361702128,
+        "se_x": 0.048101631085995,
+        "se_z": 0.20336809870836,
+        "se_cons": 0.42584208553971,
+        "n": 12.0,
+        "df_r": 9.0,
+        "r2": 0.99472859925895
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "robust",
+      "sha256": "3188fe306905e918832ef53f3348ad8341f0403277ba713d2480c0509c615a69",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 3.8358,
+      "scalars": {
+        "b_x": 1.9787234042553,
+        "b_z": 0.48936170212766,
+        "b_cons": 1.6489361702128,
+        "se_x": 0.046647695040397,
+        "se_z": 0.20827896390793,
+        "se_cons": 0.41313026965837,
+        "n": 12.0,
+        "df_r": 9.0,
+        "r2": 0.99472859925895,
+        "cluster_b_x": 1.965034965035,
+        "cluster_b_cons": 2.2272727272727,
+        "cluster_se_x": 0.051893422715957,
+        "cluster_se_cons": 0.080460339597734,
+        "cluster_df_r": 2.0
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "logistic",
+      "sha256": "a4717a0ae12092e5590fe4aa49de02fa37cf6c85b59498768babf7efceffb50a",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 8.037,
+      "scalars": {
+        "b_x": 0.0,
+        "b_z": 3.0531133177192e-16,
+        "b_cons": -0.69314718055995,
+        "se_x": 0.43301270189222,
+        "se_z": 0.70710678118655,
+        "se_cons": 0.5,
+        "n": 36.0,
+        "ll": -22.914510058613
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "semantics",
+      "sha256": "c0d252c96dff76e97e8f8a046d5fbbc09e49b6e53566a683a0ce8be848506f4e",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 1.7509,
+      "scalars": {
+        "recursive_replace": 1.0,
+        "recursive_sequence": 5.0,
+        "logical_sum": 3.0,
+        "inrange_missing_lower": 1.0,
+        "inrange_missing_value": 0.0,
+        "if_first_observation": 1.0,
+        "qualified_running_sum": 7.0,
+        "scalar_running_sum": 5.0,
+        "while_iterations": 3.0,
+        "program_exit": 7.0,
+        "caller_continues": 1.0
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "self_reference",
+      "sha256": "02381e5a25564890f4754c9951238d8d72e9b70a465272dbbb4f09833d83611c",
+      "status": "completed",
+      "rc": 111,
+      "seconds": 0.799,
+      "scalars": {},
+      "version": "19.5"
+    },
+    {
+      "case": "dta",
+      "sha256": "1602e9aacce93079e90a13b8047475d6ee0fab9e1949c54c9ac6437e73c328d1",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 1.1792,
+      "scalars": {
+        "n": 4.0,
+        "mean": 3.125
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "preserve",
+      "sha256": "979516655ab490d2388d768bb87e91d098912f5e24bb5a59d993e21f7189eca3",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 1.0922,
+      "scalars": {
+        "preserved_n": 2.0,
+        "restored_n": 5.0,
+        "last_id": 5.0
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "merge",
+      "sha256": "2d715e477e2c28b770fc8e0ebfd2436b70eb264d6a6be1b23cd52d1d74bd1670",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 1.0769,
+      "scalars": {
+        "matched": 3.0,
+        "master_only": 1.0,
+        "n": 4.0
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "append",
+      "sha256": "68d4905a49621278134fa62ecffdb4574384ba12febca8107b7501e7ea0cde5b",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 1.0031,
+      "scalars": {
+        "n": 4.0,
+        "mean": 25.0
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "reshape",
+      "sha256": "db68f255e42632279a62a1dbe2b55b4c6f3b2af069385e5860961e132f952a3a",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 1.1981,
+      "scalars": {
+        "long_n": 6.0,
+        "last_x": 31.0,
+        "wide_n": 3.0,
+        "x2": 31.0
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "mata",
+      "sha256": "db691f22fa7c4fc21eb3b5dcd0a4e9379c76b95a56f4c0b4bf5d09d40559df32",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 0.9802,
+      "scalars": {
+        "m11": 5.0,
+        "m12": 11.0,
+        "m22": 25.0
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "graph",
+      "sha256": "a032e997a19572cb55a30a0fe6e8c3e395d9cdf6fb172b1939bb2429a653e36c",
+      "status": "completed",
+      "rc": 0,
+      "seconds": 3.367,
+      "scalars": {
+        "n": 6.0
+      },
+      "version": "19.5"
+    },
+    {
+      "case": "unsupported",
+      "sha256": "f86cb8e019f6ff573658fce6af20d724b7fc375bd59d1dc801933a34f443fcdb",
+      "status": "completed",
+      "rc": 199,
+      "seconds": 1.0835,
+      "scalars": {},
+      "version": "19.5"
+    },
+    {
+      "case": "invalid_option",
+      "sha256": "d1e1f89132872118b50ec405431348820098b5a01feb564824c7afd1b480da98",
+      "status": "completed",
+      "rc": 198,
+      "seconds": 1.1086,
+      "scalars": {},
+      "version": "19.5"
+    }
+  ],
+  "generated_utc": "2026-10-15T08:05:03.405405+00:00"
+}

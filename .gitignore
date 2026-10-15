@@ -1,0 +1,16 @@
+.venv/
+.local/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+*.log
+*.smcl
+*.dta
+*.gph
+.coverage
+qa/latest-report.json
+qa/online-report.json
+openstat-output/

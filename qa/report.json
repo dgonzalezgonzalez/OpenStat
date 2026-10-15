@@ -1,0 +1,1291 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-10-15T08:07:18.544978+00:00",
+  "scope": "Bounded deterministic examples only. Passing does not establish arbitrary do-file, full Mata, package, or full Stata compatibility.",
+  "reference_executable": "StataMP-64.exe",
+  "stata_timeout_seconds": 30,
+  "openstat_timeout_seconds": 30,
+  "timing_method": "Wall-clock subprocess execution, including engine startup",
+  "numeric_tolerance": {
+    "relative": 1e-08,
+    "absolute": 1e-09
+  },
+  "online_ssc_enabled": true,
+  "summary": {
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0
+  },
+  "cases": [
+    {
+      "case": "data",
+      "status": "passed",
+      "features": [
+        "generate",
+        "replace",
+        "missing values",
+        "bysort",
+        "egen mean",
+        "sort",
+        "summarize",
+        "count",
+        "keep/drop",
+        "CSV export"
+      ],
+      "script": "qa/cases/data.do",
+      "sha256": "35f1afdf07a0fff510a1d2b14e78543c69f19a9bc362b2448703082d6dfb78f0",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 1.432,
+        "scalars": {
+          "n": 7.0,
+          "mean": 9.4285714285714,
+          "sd": 5.1269595556932,
+          "minimum": 2.0,
+          "maximum": 16.0,
+          "group_mean": 8.0,
+          "greater_than_10": 4.0,
+          "nonmissing": 7.0,
+          "missing": 1.0,
+          "remaining": 5.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 6.9301,
+        "scalars": {
+          "n": 7.0,
+          "mean": 9.4285714285714,
+          "sd": 5.1269595556932,
+          "minimum": 2.0,
+          "maximum": 16.0,
+          "group_mean": 8.0,
+          "greater_than_10": 4.0,
+          "nonmissing": 7.0,
+          "missing": 1.0,
+          "remaining": 5.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "greater_than_10": {
+            "pass": true,
+            "stata": 4.0,
+            "openstat": 4.0
+          },
+          "group_mean": {
+            "pass": true,
+            "stata": 8.0,
+            "openstat": 8.0
+          },
+          "maximum": {
+            "pass": true,
+            "stata": 16.0,
+            "openstat": 16.0
+          },
+          "mean": {
+            "pass": true,
+            "stata": 9.4285714285714,
+            "openstat": 9.4285714285714
+          },
+          "minimum": {
+            "pass": true,
+            "stata": 2.0,
+            "openstat": 2.0
+          },
+          "missing": {
+            "pass": true,
+            "stata": 1.0,
+            "openstat": 1.0
+          },
+          "n": {
+            "pass": true,
+            "stata": 7.0,
+            "openstat": 7.0
+          },
+          "nonmissing": {
+            "pass": true,
+            "stata": 7.0,
+            "openstat": 7.0
+          },
+          "remaining": {
+            "pass": true,
+            "stata": 5.0,
+            "openstat": 5.0
+          },
+          "sd": {
+            "pass": true,
+            "stata": 5.1269595556932,
+            "openstat": 5.1269595556932
+          }
+        },
+        "artifacts": {
+          "csv": {
+            "pass": true,
+            "rows": 5,
+            "columns": [
+              "id",
+              "group",
+              "x",
+              "group_mean"
+            ],
+            "differences": []
+          }
+        }
+      }
+    },
+    {
+      "case": "macros",
+      "status": "passed",
+      "features": [
+        "locals",
+        "globals",
+        "forvalues",
+        "foreach",
+        "program args",
+        "rclass",
+        "capture",
+        "_rc"
+      ],
+      "script": "qa/cases/macros.do",
+      "sha256": "cc901cbfab80c75df7669096eadb88eb2b1e45854dfa74908ee4be9a5d11ad20",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 1.5573,
+        "scalars": {
+          "total": 18.0,
+          "program": 14.0,
+          "captured_rc": 199.0,
+          "foreach_count": 3.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 6.4835,
+        "scalars": {
+          "total": 18.0,
+          "program": 14.0,
+          "captured_rc": 199.0,
+          "foreach_count": 3.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "captured_rc": {
+            "pass": true,
+            "stata": 199.0,
+            "openstat": 199.0
+          },
+          "foreach_count": {
+            "pass": true,
+            "stata": 3.0,
+            "openstat": 3.0
+          },
+          "program": {
+            "pass": true,
+            "stata": 14.0,
+            "openstat": 14.0
+          },
+          "total": {
+            "pass": true,
+            "stata": 18.0,
+            "openstat": 18.0
+          }
+        },
+        "artifacts": {}
+      }
+    },
+    {
+      "case": "regression",
+      "status": "passed",
+      "features": [
+        "OLS coefficients",
+        "OLS standard errors",
+        "e(N)",
+        "e(df_r)",
+        "e(r2)"
+      ],
+      "script": "qa/cases/regression.do",
+      "sha256": "97f94f590f0f6d4155de447ea06bc2b7da00789c2632cab76ae4248b6f990886",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 6.4747,
+        "scalars": {
+          "b_x": 1.9787234042553,
+          "b_z": 0.48936170212766,
+          "b_cons": 1.6489361702128,
+          "se_x": 0.048101631085995,
+          "se_z": 0.20336809870836,
+          "se_cons": 0.42584208553971,
+          "n": 12.0,
+          "df_r": 9.0,
+          "r2": 0.99472859925895
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 7.4403,
+        "scalars": {
+          "b_x": 1.9787234042553,
+          "b_z": 0.48936170212766,
+          "b_cons": 1.6489361702128,
+          "se_x": 0.048101631085995,
+          "se_z": 0.20336809870836,
+          "se_cons": 0.42584208553971,
+          "n": 12.0,
+          "df_r": 9.0,
+          "r2": 0.99472859925895
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "b_cons": {
+            "pass": true,
+            "stata": 1.6489361702128,
+            "openstat": 1.6489361702128
+          },
+          "b_x": {
+            "pass": true,
+            "stata": 1.9787234042553,
+            "openstat": 1.9787234042553
+          },
+          "b_z": {
+            "pass": true,
+            "stata": 0.48936170212766,
+            "openstat": 0.48936170212766
+          },
+          "df_r": {
+            "pass": true,
+            "stata": 9.0,
+            "openstat": 9.0
+          },
+          "n": {
+            "pass": true,
+            "stata": 12.0,
+            "openstat": 12.0
+          },
+          "r2": {
+            "pass": true,
+            "stata": 0.99472859925895,
+            "openstat": 0.99472859925895
+          },
+          "se_cons": {
+            "pass": true,
+            "stata": 0.42584208553971,
+            "openstat": 0.42584208553971
+          },
+          "se_x": {
+            "pass": true,
+            "stata": 0.048101631085995,
+            "openstat": 0.048101631085995
+          },
+          "se_z": {
+            "pass": true,
+            "stata": 0.20336809870836,
+            "openstat": 0.20336809870836
+          }
+        },
+        "artifacts": {}
+      }
+    },
+    {
+      "case": "robust",
+      "status": "passed",
+      "features": [
+        "OLS HC1 robust standard errors",
+        "OLS clustered standard errors",
+        "cluster inference degrees of freedom",
+        "OLS coefficients",
+        "stored results"
+      ],
+      "script": "qa/cases/robust.do",
+      "sha256": "3188fe306905e918832ef53f3348ad8341f0403277ba713d2480c0509c615a69",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 7.8546,
+        "scalars": {
+          "b_x": 1.9787234042553,
+          "b_z": 0.48936170212766,
+          "b_cons": 1.6489361702128,
+          "se_x": 0.046647695040397,
+          "se_z": 0.20827896390793,
+          "se_cons": 0.41313026965837,
+          "n": 12.0,
+          "df_r": 9.0,
+          "r2": 0.99472859925895,
+          "cluster_b_x": 1.965034965035,
+          "cluster_b_cons": 2.2272727272727,
+          "cluster_se_x": 0.051893422715957,
+          "cluster_se_cons": 0.080460339597734,
+          "cluster_df_r": 2.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 6.7907,
+        "scalars": {
+          "b_x": 1.9787234042553,
+          "b_z": 0.48936170212766,
+          "b_cons": 1.6489361702128,
+          "se_x": 0.046647695040397,
+          "se_z": 0.20827896390792,
+          "se_cons": 0.41313026965837,
+          "n": 12.0,
+          "df_r": 9.0,
+          "r2": 0.99472859925895,
+          "cluster_b_x": 1.965034965035,
+          "cluster_b_cons": 2.2272727272727,
+          "cluster_se_x": 0.051893422715956,
+          "cluster_se_cons": 0.080460339597736,
+          "cluster_df_r": 2.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "b_cons": {
+            "pass": true,
+            "stata": 1.6489361702128,
+            "openstat": 1.6489361702128
+          },
+          "b_x": {
+            "pass": true,
+            "stata": 1.9787234042553,
+            "openstat": 1.9787234042553
+          },
+          "b_z": {
+            "pass": true,
+            "stata": 0.48936170212766,
+            "openstat": 0.48936170212766
+          },
+          "cluster_b_cons": {
+            "pass": true,
+            "stata": 2.2272727272727,
+            "openstat": 2.2272727272727
+          },
+          "cluster_b_x": {
+            "pass": true,
+            "stata": 1.965034965035,
+            "openstat": 1.965034965035
+          },
+          "cluster_df_r": {
+            "pass": true,
+            "stata": 2.0,
+            "openstat": 2.0
+          },
+          "cluster_se_cons": {
+            "pass": true,
+            "stata": 0.080460339597734,
+            "openstat": 0.080460339597736
+          },
+          "cluster_se_x": {
+            "pass": true,
+            "stata": 0.051893422715957,
+            "openstat": 0.051893422715956
+          },
+          "df_r": {
+            "pass": true,
+            "stata": 9.0,
+            "openstat": 9.0
+          },
+          "n": {
+            "pass": true,
+            "stata": 12.0,
+            "openstat": 12.0
+          },
+          "r2": {
+            "pass": true,
+            "stata": 0.99472859925895,
+            "openstat": 0.99472859925895
+          },
+          "se_cons": {
+            "pass": true,
+            "stata": 0.41313026965837,
+            "openstat": 0.41313026965837
+          },
+          "se_x": {
+            "pass": true,
+            "stata": 0.046647695040397,
+            "openstat": 0.046647695040397
+          },
+          "se_z": {
+            "pass": true,
+            "stata": 0.20827896390793,
+            "openstat": 0.20827896390792
+          }
+        },
+        "artifacts": {}
+      }
+    },
+    {
+      "case": "logistic",
+      "status": "passed",
+      "features": [
+        "logistic log-odds coefficients",
+        "logistic standard errors",
+        "log likelihood"
+      ],
+      "script": "qa/cases/logistic.do",
+      "sha256": "a4717a0ae12092e5590fe4aa49de02fa37cf6c85b59498768babf7efceffb50a",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 8.6924,
+        "scalars": {
+          "b_x": 0.0,
+          "b_z": 3.0531133177192e-16,
+          "b_cons": -0.69314718055995,
+          "se_x": 0.43301270189222,
+          "se_z": 0.70710678118655,
+          "se_cons": 0.5,
+          "n": 36.0,
+          "ll": -22.914510058613
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 3.7123,
+        "scalars": {
+          "b_x": 0.0,
+          "b_z": -5.32292537811e-17,
+          "b_cons": -0.69314718055995,
+          "se_x": 0.43301270189222,
+          "se_z": 0.70710678118655,
+          "se_cons": 0.5,
+          "n": 36.0,
+          "ll": -22.914510058613
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "b_cons": {
+            "pass": true,
+            "stata": -0.69314718055995,
+            "openstat": -0.69314718055995
+          },
+          "b_x": {
+            "pass": true,
+            "stata": 0.0,
+            "openstat": 0.0
+          },
+          "b_z": {
+            "pass": true,
+            "stata": 3.0531133177192e-16,
+            "openstat": -5.32292537811e-17
+          },
+          "ll": {
+            "pass": true,
+            "stata": -22.914510058613,
+            "openstat": -22.914510058613
+          },
+          "n": {
+            "pass": true,
+            "stata": 36.0,
+            "openstat": 36.0
+          },
+          "se_cons": {
+            "pass": true,
+            "stata": 0.5,
+            "openstat": 0.5
+          },
+          "se_x": {
+            "pass": true,
+            "stata": 0.43301270189222,
+            "openstat": 0.43301270189222
+          },
+          "se_z": {
+            "pass": true,
+            "stata": 0.70710678118655,
+            "openstat": 0.70710678118655
+          }
+        },
+        "artifacts": {}
+      }
+    },
+    {
+      "case": "semantics",
+      "status": "passed",
+      "features": [
+        "recursive replace",
+        "numeric logical values",
+        "inrange missing bounds",
+        "qualified cumulative sum",
+        "scalar cumulative sum",
+        "programming if first observation",
+        "while macro expansion",
+        "program exit 0"
+      ],
+      "script": "qa/cases/semantics.do",
+      "sha256": "c0d252c96dff76e97e8f8a046d5fbbc09e49b6e53566a683a0ce8be848506f4e",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 0.8887,
+        "scalars": {
+          "recursive_replace": 1.0,
+          "recursive_sequence": 5.0,
+          "logical_sum": 3.0,
+          "inrange_missing_lower": 1.0,
+          "inrange_missing_value": 0.0,
+          "if_first_observation": 1.0,
+          "qualified_running_sum": 7.0,
+          "scalar_running_sum": 5.0,
+          "while_iterations": 3.0,
+          "program_exit": 7.0,
+          "caller_continues": 1.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 3.5278,
+        "scalars": {
+          "recursive_replace": 1.0,
+          "recursive_sequence": 5.0,
+          "logical_sum": 3.0,
+          "inrange_missing_lower": 1.0,
+          "inrange_missing_value": 0.0,
+          "if_first_observation": 1.0,
+          "qualified_running_sum": 7.0,
+          "scalar_running_sum": 5.0,
+          "while_iterations": 3.0,
+          "program_exit": 7.0,
+          "caller_continues": 1.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "caller_continues": {
+            "pass": true,
+            "stata": 1.0,
+            "openstat": 1.0
+          },
+          "if_first_observation": {
+            "pass": true,
+            "stata": 1.0,
+            "openstat": 1.0
+          },
+          "inrange_missing_lower": {
+            "pass": true,
+            "stata": 1.0,
+            "openstat": 1.0
+          },
+          "inrange_missing_value": {
+            "pass": true,
+            "stata": 0.0,
+            "openstat": 0.0
+          },
+          "logical_sum": {
+            "pass": true,
+            "stata": 3.0,
+            "openstat": 3.0
+          },
+          "program_exit": {
+            "pass": true,
+            "stata": 7.0,
+            "openstat": 7.0
+          },
+          "qualified_running_sum": {
+            "pass": true,
+            "stata": 7.0,
+            "openstat": 7.0
+          },
+          "recursive_replace": {
+            "pass": true,
+            "stata": 1.0,
+            "openstat": 1.0
+          },
+          "recursive_sequence": {
+            "pass": true,
+            "stata": 5.0,
+            "openstat": 5.0
+          },
+          "scalar_running_sum": {
+            "pass": true,
+            "stata": 5.0,
+            "openstat": 5.0
+          },
+          "while_iterations": {
+            "pass": true,
+            "stata": 3.0,
+            "openstat": 3.0
+          }
+        },
+        "artifacts": {}
+      }
+    },
+    {
+      "case": "self_reference",
+      "status": "passed",
+      "features": [
+        "generate rejects reference to nonexistent variable"
+      ],
+      "script": "qa/cases/self_reference.do",
+      "sha256": "02381e5a25564890f4754c9951238d8d72e9b70a465272dbbb4f09833d83611c",
+      "stata": {
+        "status": "completed",
+        "rc": 111,
+        "seconds": 0.9151,
+        "scalars": {},
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 111,
+        "line": 4,
+        "version": "0.1.0",
+        "seconds": 4.0898,
+        "scalars": {}
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {},
+        "artifacts": {}
+      }
+    },
+    {
+      "case": "dta",
+      "status": "passed",
+      "features": [
+        "DTA 118 write/read",
+        "variable labels",
+        "value labels"
+      ],
+      "script": "qa/cases/dta.do",
+      "sha256": "1602e9aacce93079e90a13b8047475d6ee0fab9e1949c54c9ac6437e73c328d1",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 4.2951,
+        "scalars": {
+          "n": 4.0,
+          "mean": 3.125
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 6.4109,
+        "scalars": {
+          "n": 4.0,
+          "mean": 3.125
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "mean": {
+            "pass": true,
+            "stata": 3.125,
+            "openstat": 3.125
+          },
+          "n": {
+            "pass": true,
+            "stata": 4.0,
+            "openstat": 4.0
+          }
+        },
+        "artifacts": {
+          "csv": {
+            "pass": true,
+            "rows": 4,
+            "columns": [
+              "id",
+              "treatment",
+              "outcome"
+            ],
+            "differences": []
+          },
+          "dta": {
+            "pass": true,
+            "stata": {
+              "exists": true,
+              "release": 118,
+              "rows": 4,
+              "columns": [
+                "id",
+                "treatment",
+                "outcome"
+              ],
+              "variable_labels": {
+                "id": "",
+                "treatment": "",
+                "outcome": "Synthetic outcome"
+              },
+              "value_labels": {
+                "treatment_label": {
+                  "0": "Control",
+                  "1": "Treated"
+                }
+              },
+              "labeled_values": {
+                "treatment": [
+                  "Treated",
+                  "Control",
+                  "Treated",
+                  "Control"
+                ]
+              }
+            },
+            "openstat": {
+              "exists": true,
+              "release": 118,
+              "rows": 4,
+              "columns": [
+                "id",
+                "treatment",
+                "outcome"
+              ],
+              "variable_labels": {
+                "id": "",
+                "treatment": "",
+                "outcome": "Synthetic outcome"
+              },
+              "value_labels": {
+                "treatment": {
+                  "0": "Control",
+                  "1": "Treated"
+                }
+              },
+              "labeled_values": {
+                "treatment": [
+                  "Treated",
+                  "Control",
+                  "Treated",
+                  "Control"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "preserve",
+      "status": "passed",
+      "features": [
+        "preserve",
+        "restore"
+      ],
+      "script": "qa/cases/preserve.do",
+      "sha256": "979516655ab490d2388d768bb87e91d098912f5e24bb5a59d993e21f7189eca3",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 1.7741,
+        "scalars": {
+          "preserved_n": 2.0,
+          "restored_n": 5.0,
+          "last_id": 5.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 4.6217,
+        "scalars": {
+          "preserved_n": 2.0,
+          "restored_n": 5.0,
+          "last_id": 5.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "last_id": {
+            "pass": true,
+            "stata": 5.0,
+            "openstat": 5.0
+          },
+          "preserved_n": {
+            "pass": true,
+            "stata": 2.0,
+            "openstat": 2.0
+          },
+          "restored_n": {
+            "pass": true,
+            "stata": 5.0,
+            "openstat": 5.0
+          }
+        },
+        "artifacts": {}
+      }
+    },
+    {
+      "case": "merge",
+      "status": "passed",
+      "features": [
+        "merge 1:1",
+        "merge result indicator"
+      ],
+      "script": "qa/cases/merge.do",
+      "sha256": "2d715e477e2c28b770fc8e0ebfd2436b70eb264d6a6be1b23cd52d1d74bd1670",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 1.524,
+        "scalars": {
+          "matched": 3.0,
+          "master_only": 1.0,
+          "n": 4.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 4.965,
+        "scalars": {
+          "matched": 3.0,
+          "master_only": 1.0,
+          "n": 4.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "master_only": {
+            "pass": true,
+            "stata": 1.0,
+            "openstat": 1.0
+          },
+          "matched": {
+            "pass": true,
+            "stata": 3.0,
+            "openstat": 3.0
+          },
+          "n": {
+            "pass": true,
+            "stata": 4.0,
+            "openstat": 4.0
+          }
+        },
+        "artifacts": {
+          "csv": {
+            "pass": true,
+            "rows": 4,
+            "columns": [
+              "id",
+              "x",
+              "y",
+              "_merge"
+            ],
+            "differences": []
+          }
+        }
+      }
+    },
+    {
+      "case": "append",
+      "status": "passed",
+      "features": [
+        "append"
+      ],
+      "script": "qa/cases/append.do",
+      "sha256": "68d4905a49621278134fa62ecffdb4574384ba12febca8107b7501e7ea0cde5b",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 1.9113,
+        "scalars": {
+          "n": 4.0,
+          "mean": 25.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 3.5487,
+        "scalars": {
+          "n": 4.0,
+          "mean": 25.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "mean": {
+            "pass": true,
+            "stata": 25.0,
+            "openstat": 25.0
+          },
+          "n": {
+            "pass": true,
+            "stata": 4.0,
+            "openstat": 4.0
+          }
+        },
+        "artifacts": {
+          "csv": {
+            "pass": true,
+            "rows": 4,
+            "columns": [
+              "id",
+              "x"
+            ],
+            "differences": []
+          }
+        }
+      }
+    },
+    {
+      "case": "reshape",
+      "status": "passed",
+      "features": [
+        "reshape long",
+        "reshape wide"
+      ],
+      "script": "qa/cases/reshape.do",
+      "sha256": "db68f255e42632279a62a1dbe2b55b4c6f3b2af069385e5860961e132f952a3a",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 1.8499,
+        "scalars": {
+          "long_n": 6.0,
+          "last_x": 31.0,
+          "wide_n": 3.0,
+          "x2": 31.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 3.3394,
+        "scalars": {
+          "long_n": 6.0,
+          "last_x": 31.0,
+          "wide_n": 3.0,
+          "x2": 31.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "last_x": {
+            "pass": true,
+            "stata": 31.0,
+            "openstat": 31.0
+          },
+          "long_n": {
+            "pass": true,
+            "stata": 6.0,
+            "openstat": 6.0
+          },
+          "wide_n": {
+            "pass": true,
+            "stata": 3.0,
+            "openstat": 3.0
+          },
+          "x2": {
+            "pass": true,
+            "stata": 31.0,
+            "openstat": 31.0
+          }
+        },
+        "artifacts": {
+          "csv": {
+            "pass": true,
+            "rows": 3,
+            "columns": [
+              "id",
+              "x1",
+              "x2"
+            ],
+            "differences": []
+          }
+        }
+      }
+    },
+    {
+      "case": "mata",
+      "status": "passed",
+      "features": [
+        "Mata matrix literals",
+        "Mata transpose",
+        "Mata product",
+        "st_matrix"
+      ],
+      "script": "qa/cases/mata.do",
+      "sha256": "db691f22fa7c4fc21eb3b5dcd0a4e9379c76b95a56f4c0b4bf5d09d40559df32",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 1.2458,
+        "scalars": {
+          "m11": 5.0,
+          "m12": 11.0,
+          "m22": 25.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 3.3243,
+        "scalars": {
+          "m11": 5.0,
+          "m12": 11.0,
+          "m22": 25.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "m11": {
+            "pass": true,
+            "stata": 5.0,
+            "openstat": 5.0
+          },
+          "m12": {
+            "pass": true,
+            "stata": 11.0,
+            "openstat": 11.0
+          },
+          "m22": {
+            "pass": true,
+            "stata": 25.0,
+            "openstat": 25.0
+          }
+        },
+        "artifacts": {}
+      }
+    },
+    {
+      "case": "graph",
+      "status": "passed",
+      "features": [
+        "scatter",
+        "PNG export"
+      ],
+      "script": "qa/cases/graph.do",
+      "sha256": "a032e997a19572cb55a30a0fe6e8c3e395d9cdf6fb172b1939bb2429a653e36c",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 2.2046,
+        "scalars": {
+          "n": 6.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 3.0885,
+        "scalars": {
+          "n": 6.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "n": {
+            "pass": true,
+            "stata": 6.0,
+            "openstat": 6.0
+          }
+        },
+        "artifacts": {
+          "png": {
+            "pass": true,
+            "comparison": "PNG validity and requested width only; no visual equivalence claim",
+            "stata": {
+              "exists": true,
+              "valid_png": true,
+              "bytes": 15979,
+              "width": 640,
+              "height": 384
+            },
+            "openstat": {
+              "exists": true,
+              "valid_png": true,
+              "bytes": 11227,
+              "width": 640,
+              "height": 600
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "unsupported",
+      "status": "passed",
+      "features": [
+        "unknown command fails explicitly"
+      ],
+      "script": "qa/cases/unsupported.do",
+      "sha256": "f86cb8e019f6ff573658fce6af20d724b7fc375bd59d1dc801933a34f443fcdb",
+      "stata": {
+        "status": "completed",
+        "rc": 199,
+        "seconds": 1.2618,
+        "scalars": {},
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 199,
+        "line": 3,
+        "version": "0.1.0",
+        "seconds": 2.4922,
+        "scalars": {}
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {},
+        "artifacts": {}
+      }
+    },
+    {
+      "case": "invalid_option",
+      "status": "passed",
+      "features": [
+        "unknown option fails explicitly"
+      ],
+      "script": "qa/cases/invalid_option.do",
+      "sha256": "d1e1f89132872118b50ec405431348820098b5a01feb564824c7afd1b480da98",
+      "stata": {
+        "status": "completed",
+        "rc": 198,
+        "seconds": 0.7795,
+        "scalars": {},
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 198,
+        "line": 4,
+        "version": "0.1.0",
+        "seconds": 2.33,
+        "scalars": {}
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {},
+        "artifacts": {}
+      }
+    },
+    {
+      "case": "ssc",
+      "status": "passed",
+      "features": [
+        "online SSC install",
+        "which"
+      ],
+      "script": "qa/cases/ssc.do",
+      "sha256": "8dc049d55a40a031c98115e85dbb752522e4d31be2304872f3d7cce5283af9bd",
+      "stata": {
+        "status": "completed",
+        "rc": 0,
+        "seconds": 2.5401,
+        "scalars": {
+          "installed": 1.0
+        },
+        "version": "19.5"
+      },
+      "openstat": {
+        "status": "completed",
+        "rc": 0,
+        "line": null,
+        "version": "0.1.0",
+        "seconds": 4.1407,
+        "scalars": {
+          "installed": 1.0
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "errors": [],
+        "scalar_checks": {
+          "installed": {
+            "pass": true,
+            "stata": 1.0,
+            "openstat": 1.0
+          }
+        },
+        "artifacts": {
+          "ssc_download": {
+            "pass": true,
+            "stata": {
+              "ado_file_exists": true,
+              "ado_bytes": 2005,
+              "ado_sha256": "a3533d8951b745b34b7389049177157767e93a863c795682d9574f422a991dbe"
+            },
+            "openstat": {
+              "ado_file_exists": true,
+              "ado_bytes": 2005,
+              "ado_sha256": "a3533d8951b745b34b7389049177157767e93a863c795682d9574f422a991dbe"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
