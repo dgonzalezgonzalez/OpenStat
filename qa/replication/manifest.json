@@ -1,0 +1,16 @@
+{
+  "cases": [
+    {
+      "name": "dropout_jpe_descriptives",
+      "description": "Journal of Political Economy: Arcidiacono, Aucejo, Maurel & Ransom, 'College Attrition and the Dynamics of Information Revelation'. Descriptive statistics from the package's own data.",
+      "package": {
+        "url": "https://github.com/tyleransom/Dropout-JPE",
+        "name": "Dropout-JPE"
+      },
+      "prepare": "prepare.do",
+      "do_file": "case.do",
+      "files": ["case.do"],
+      "copy": ["data/nlsy97/cleaned/y97_all_tscrGPA.dta.zip"]
+    }
+  ]
+}

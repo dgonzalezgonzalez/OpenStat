@@ -1,0 +1,55 @@
+* c02: generate/replace, types, missing values, operators
+clear all
+set more off
+set obs 10
+generate int x = _n
+generate double y = x*2.5
+generate str10 s = "row" + string(_n)
+generate byte b = mod(_n,3)
+replace x = . if x == 3
+replace y = . if y > 20
+summarize x
+display "__OPENSTAT__n=" %21.14g r(N)
+display "__OPENSTAT__meanx=" %21.14g r(mean)
+display "__OPENSTAT__minx=" %21.14g r(min)
+display "__OPENSTAT__maxx=" %21.14g r(max)
+count if x == .
+display "__OPENSTAT__nmissx=" %21.14g r(N)
+count if missing(x)
+display "__OPENSTAT__nmiss2=" %21.14g r(N)
+display "__OPENSTAT__eq=" %21.14g (1 == 1)
+display "__OPENSTAT__neq=" %21.14g (1 != 2)
+display "__OPENSTAT__and=" %21.14g (1 & 0)
+display "__OPENSTAT__or=" %21.14g (1 | 0)
+display "__OPENSTAT__not=" %21.14g (!0)
+display "__OPENSTAT__lt=" %21.14g (1 < 2)
+display "__OPENSTAT__ge=" %21.14g (2 >= 2)
+display "__OPENSTAT__misscmp=" %21.14g (. == .)
+display "__OPENSTAT__missgt=" %21.14g (. > 1)
+display "__OPENSTAT__inrange=" %21.14g inrange(5,1,10)
+display "__OPENSTAT__inlist=" %21.14g inlist(3,1,2,3)
+display "__OPENSTAT__strlen=" %21.14g strlen("hello")
+display "__OPENSTAT__substr=" %21.14g substr("hello",2,3)
+display "__OPENSTAT__upper=" %21.14g upper("abc")
+display "__OPENSTAT__trim=" %21.14g trim("  ab  ")
+display "__OPENSTAT__word=" %21.14g word("a b c",2)
+display "__OPENSTAT__strf=" %21.14g string(3.14159,"%6.2f")
+display "__OPENSTAT__abs=" %21.14g abs(-3.5)
+display "__OPENSTAT__sqrt=" %21.14g sqrt(16)
+display "__OPENSTAT__exp=" %21.14g exp(1)
+display "__OPENSTAT__ln=" %21.14g ln(exp(2))
+display "__OPENSTAT__log10=" %21.14g log10(100)
+display "__OPENSTAT__max=" %21.14g max(3,7)
+display "__OPENSTAT__min=" %21.14g min(3,7)
+display "__OPENSTAT__int=" %21.14g int(3.7)
+display "__OPENSTAT__round=" %21.14g round(3.456,2)
+display "__OPENSTAT__floor=" %21.14g floor(3.7)
+display "__OPENSTAT__ceil=" %21.14g ceil(3.2)
+display "__OPENSTAT__sign=" %21.14g sign(-3)
+display "__OPENSTAT__normal=" %21.14g normal(0)
+display "__OPENSTAT__invnormal=" %21.14g invnormal(0.5)
+display "__OPENSTAT__ttail=" %21.14g ttail(10,2)
+display "__OPENSTAT__chi2tail=" %21.14g chi2tail(3,1.5)
+display "__OPENSTAT__real=" %21.14g real("12.5")
+display "__OPENSTAT__cond=" %21.14g cond(1,10,20)
+display "__OPENSTAT__sum=" %21.14g sum(x)

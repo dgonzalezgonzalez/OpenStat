@@ -125,11 +125,19 @@ def test_inrange_has_stata_missing_boundary_rules(tmp_path):
     assert e.scalars=={'a':True,'b':False,'c':True}
 
 
-def test_logical_negation_precedence_and_unsupported_chained_comparisons(tmp_path):
+def test_logical_negation_precedence_and_chained_comparisons(tmp_path):
     e=Engine(tmp_path)
     assert e.run('scalar a = !2 == 1').rc==0
     assert not e.scalars['a']
-    assert e.run('display 3 > 2 > 1').rc!=0
+    # Stata binds "!" tighter than "*" and evaluates chained comparisons
+    # left to right: 3 > 2 > 1 is (3 > 2) > 1.
+    # Stata binds "!" tighter than "*": !2 * 3 is (0) * 3 = 0.
+    assert e.run('scalar b = !2 * 3').rc==0
+    assert e.scalars['b']==0
+    assert e.run('scalar b2 = !0 * 3').rc==0
+    assert e.scalars['b2']==3
+    assert e.run('scalar c = 3 > 2 > 1').rc==0
+    assert e.scalars['c']==0
 
 
 def test_cluster_inference_uses_number_of_clusters_minus_one(tmp_path):
