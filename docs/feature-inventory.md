@@ -1,6 +1,6 @@
 # Stata compatibility target inventory
 
-This is a **feature-family target**, not a claim that OpenStat implements these features. Inspection date: 15 October 2026. Sources: selected installed StataNow 19 files; bounded REA resource evidence; the public documentation links below. Actual OpenStat support must be established by implementation review and executable tests.
+This is a **feature-family target**, not a claim that OpenStat implements these features. Inspection date: 15 October 2026; extended 21 October 2026 with the macOS Stata 19.5 binary and its REA findings. Sources: selected installed StataNow 19 files; bounded REA resource evidence; the public documentation links below. Actual OpenStat support must be established by implementation review and executable tests — the implemented and *measured* subset is described in [compatibility.md](compatibility.md), and the display-format model in [formats.md](formats.md).
 
 Evidence classes: **O** = observed installed artifact/manual/menu inventory; **D** = public documented feature; **I** = inferred compatibility requirement; **U** = unverified semantics or coverage. REA IDs, artifact hashes, search boundaries and provider limits are in [inspection.md](inspection.md). No proprietary implementation or documentation is included here.
 

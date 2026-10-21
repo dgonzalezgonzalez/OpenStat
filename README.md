@@ -33,6 +33,10 @@ Batch runs use the current directory unless `--cwd DIRECTORY` is supplied. A scr
 - Native desktop: Results, command entry/history, do-file syntax highlighting, line numbers, find, open/save, run selection, variables/properties, editable Data Browser, graph previews, and keyboard shortcuts. Background execution is serialized; Stop interrupts at statement boundaries.
 - A bounded do-file language: comments, continuations, delimiters, local/global macros, simple loops, programs with positional `args`, stored `r()`/`e()` results, `capture`, `quietly`, `if`/`in`, variable wildcards and ranges.
 - Data generation, filtering, sorting, grouped calculations, summaries, CSV/Excel import/export, append, validated merges, numeric long/wide reshape, collapse, preserve/restore, labels, encode/decode, and strict numeric/string conversions.
+- **Stata's numeric display formats.** `%w.dg`, `%w.df`, `%w.de` and `%w.dgc` reproduce Stata 19.5 byte-for-byte on a 385 815-measurement corpus plus 7 160 targeted probes, and `describe` reproduces Stata's layout byte-for-byte. The model is documented in [docs/formats.md](docs/formats.md).
+- **Stata's storage types.** `byte`, `int`, `long`, `float` and `double` keep Stata's ranges, Stata's default display format per type, and Stata's rule that an out-of-range integer becomes *missing* rather than clamped. `generate` creates a `float` variable unless a type is named, exactly as Stata does.
+- **Stata's `r()`, `e()` and `c()`.** The expansion in macro position, the rendering in expression position, and the behaviour of an unknown name all follow Stata 19.5.
+- **Stata's random numbers.** The generator is Stata's MT64 variant with the ziggurat normal, verified draw-for-draw against Stata 19.5. See [docs/random-numbers.md](docs/random-numbers.md).
 - Reading supported DTA variants through ReadStat; writing 114/117/118/119 through pandas. The live conformance suite tests **DTA118 numeric/string data and labels**, not every DTA feature. Extended missing values are rejected when loading instead of silently collapsed.
 - OLS, HC1/cluster covariance, binary logit/probit, Poisson, predictions, basic hypothesis/mean tests, and matrix arithmetic through maintained numerical libraries. OLS, robust/clustered covariance and stored logistic results have bounded Stata comparisons; other models need broader validation.
 - A small interpreted Mata subset: real numeric matrices, assignment, transpose, matrix multiplication, selected algebra functions, `st_matrix()` and `st_numscalar()`; no compiled Mata, functions, classes, pointers, views, or `.mlib` execution.
@@ -59,13 +63,41 @@ The GUI uses an original OpenStat visual identity while retaining the observed s
 ```sh
 python -m pip install ".[desktop,test]"
 python -m pytest -q
+
+# differential against an installed Stata 19.5
+python qa/conformance_run.py --all --diff
+python qa/replication_run.py --list
+```
+
+The conformance harness runs the same `qa/conformance/cNN_*.do` in Stata and
+in OpenStat, each in its own temporary directory, and compares the sentinel
+values and return codes. The replication harness runs real published
+replication packages (AEA, JPE) end to end. Neither touches personal
+do-files or existing Stata sessions.
+
+The older checked-in differential runner is still available:
+
+```sh
 python qa/run_differential.py --stata "C:/Program Files/StataNow19/StataMP-64.exe"
 python qa/run_differential.py --online-ssc --case ssc
 ```
 
-The differential runner generates temporary synthetic inputs, starts its own licensed Stata child with a maximum 30-second case timeout, and compares scalars, exported CSVs, DTA labels and PNG dimensions. It does not touch personal do-files or existing Stata sessions. Network testing is opt-in. [Checked-in results](qa/report.json) identify the tested cases, hashes, tolerances, timings, return codes, and reference version. [Stored reference values](qa/stata_reference.json) allow tests without Stata.
+It generates temporary synthetic inputs, starts its own licensed Stata child
+with a maximum 30-second case timeout, and compares scalars, exported CSVs,
+DTA labels and PNG dimensions. Network testing is opt-in.
+[Checked-in results](qa/report.json) identify the tested cases, hashes,
+tolerances, timings, return codes, and reference version.
+[Stored reference values](qa/stata_reference.json) allow tests without
+Stata.
 
-**Reference boundary:** the installed oracle reports StataNow/MP 19.5, with older shipped help/resources. The official update page listed revision **14 October 2026** at inspection; that revision was not installed or tested. REA provided static resource evidence; native decompilation was unavailable. No exhaustive understanding or latest-version equivalence is claimed.
+**Reference boundary:** the installed oracle is **StataNow/SE 19.5** on
+macOS (`/Applications/StataNow`); older shipped help/resources describe an
+earlier snapshot. The official update page listed revision **14 October
+2026** at inspection; that revision was not installed or tested. REA
+provided static evidence from the shipped binary — the display-format
+model, the macro-expansion format, the RNG constants and the storage-type
+defaults — recorded in the [inspection record](docs/inspection.md). No
+exhaustive understanding or latest-version equivalence is claimed.
 
 ## Development priorities
 
