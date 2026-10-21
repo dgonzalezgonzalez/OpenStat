@@ -24,6 +24,7 @@ import pandas as pd
 from .expression import (Evaluator, ExpressionError, NotFoundError, UndefinedCValue,
                          truth)
 from .cclass import build_cclass
+from .duplicates import DuplicatesCommands
 from .panel import PanelCommands
 from .rng import RandomGenerator
 from .formats import format_value
@@ -89,7 +90,8 @@ PROGRAM_OPTIONS = {
 
 
 class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands,
-            GenerationCommands, ProgramSupportCommands, PanelCommands):
+            GenerationCommands, ProgramSupportCommands, PanelCommands,
+            DuplicatesCommands):
     def __init__(self, cwd: Path | str | None = None, ado_dir: Path | str | None = None):
         self.cwd = Path(cwd or Path.cwd()).resolve()
         self.data = pd.DataFrame()
@@ -889,6 +891,9 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         if command in {"summarize", "count", "describe", "list", "tabulate", "correlate",
                        "codebook", "inspect", "tabstat", "mean", "total", "centile"}:
             self._describe(command, arg)
+            return
+        if command == "duplicates":
+            self._duplicates(arg)
             return
         if command == "xtset":
             self._xtset(arg)
