@@ -16,3 +16,13 @@ qa/online-report.json
 openstat-output/
 qa/replication/_packages/
 qa/replication/_artifacts/
+
+# Ad-hoc probe scripts and large local analysis artifacts.
+qa/_scratch/
+
+# Build artifacts of the optional C fast path for the RNG.  The extension is
+# rebuilt from openstat/_rngfast.c by setup.py; the ziggurat header it
+# includes is generated from openstat/rng_tables.py by openstat/_rngtables.py.
+openstat/_rngfast*.so
+openstat/_rngfast*.pyd
+openstat/rngtables.h

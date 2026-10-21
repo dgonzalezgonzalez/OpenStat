@@ -22,6 +22,7 @@ import pandas as pd
 
 from .expression import Evaluator, ExpressionError, NotFoundError, truth
 from .panel import PanelCommands
+from .rng import RandomGenerator
 from .formats import format_value
 from .macros import MacroError, apply_macro_function, expand_macros
 from .mata import Mata, MataError
@@ -119,7 +120,7 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         self._quiet = 0
         self._log = None
         self.rc = 0
-        self.rng = np.random.default_rng()
+        self.rng = RandomGenerator()
         self.packages = PackageManager(Path(ado_dir) if ado_dir else None)
         self.mata = Mata(self)
         self.evaluator = Evaluator(self)
@@ -1223,7 +1224,7 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             self.data = self.data.reindex(range(count))
             return
         if name == "seed":
-            self.rng = np.random.default_rng(int(value))
+            self.rng.set_seed(int(value))
             return
         if name in {"more", "varabbrev", "compress", "sort", "trace", "quiet"}:
             if name == "varabbrev" and value not in {"off", "on"}:
