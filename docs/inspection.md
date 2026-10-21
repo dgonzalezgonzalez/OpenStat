@@ -119,6 +119,17 @@ Evidence records produced during this record:
 |---|---|---|
 | Where does the literal `%18.0g` occur? | `search_strings({pattern:"%18.0g"})` | `ev_23b5ee983105174561526dc8e133d46ddf5c0bc642396165cbdfc55ed5afb150` |
 | Who references the `summarize` variant `%18.0gc`? | `xrefs({address:"0x400ebc0"})` | `ev_c1841866dbace6d2cb18df73d1038efb0845a7f3c5c010e35ff73a3d3c541c7a` |
+| Who references the `export delimited` format? | `xrefs({address:"0x40274c8"})` | `ev_1617839931190de0565d0ad0146cb789bf04830fcea074e4b878bea54fc34d60` |
+| Who references the Excel-import format? | `xrefs({address:"0x403f44e"})` | `ev_51e15163f13b9cab1b8edd99f432dbad8ad5c1a92254cb9a2f5c9a7312d9b2bf` |
+| Who references the macro-expansion format? | `xrefs({address:"0x4062e34"})` | `ev_a434297c38a6167de529c1b2a570c4641b2f014a298b8cc8db15f873480ed988` |
+
+The last row is the one that decided the macro rule. The cross-reference
+graph of the Kuna provider is built from a project export that this
+target exceeds the timeout for, so the `xrefs` calls return an empty
+result if the target is re-opened after the export has failed. The
+records above were captured in one session and the same answers can be
+reproduced locally with `objdump` on the thin copy, because file offset
+equals virtual address for `__text` and `__cstring` in this dylib.
 
 ### The finding that mattered: the macro-expansion format
 
