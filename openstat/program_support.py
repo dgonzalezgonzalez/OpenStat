@@ -120,7 +120,7 @@ class ProgramSupportCommands:
         return value
 
     def _store_marker(self, name: str, value: pd.Series) -> None:
-        """Store a marker variable as a byte, as Stata's ``mark`` does.
+        r"""Store a marker variable as a byte, as Stata's ``mark`` does.
 
         Stata stores the marker in a hidden variable and points the local
         macro at it, so ``marksample touse`` makes ``\`touse'`` expand to
