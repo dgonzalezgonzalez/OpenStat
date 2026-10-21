@@ -1,9 +1,9 @@
 #!/bin/bash
-# Run a do-file in the locally installed, licensed Stata 15.1 (batch) and
+# Run a do-file in the locally installed, licensed Stata 19.5 (batch) and
 # print the resulting log. Used only for differential QA.
 set -u
-STATA_ROOT="/Applications/Stata 15"
-STATA_EXE="$STATA_ROOT/StataMP.app/Contents/MacOS/stata-mp"
+STATA_ROOT="/Applications/StataNow"
+STATA_EXE="$STATA_ROOT/StataSE.app/Contents/MacOS/stata-se"
 DOFILE="$1"
 WORKDIR="${2:-/tmp/openstat-stata-$$}"
 mkdir -p "$WORKDIR"

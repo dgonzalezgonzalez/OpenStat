@@ -23,8 +23,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CASE_DIR = Path(__file__).resolve().parent / "conformance"
-STATA_ROOT = Path("/Applications/Stata 15")
-STATA_EXE = STATA_ROOT / "StataMP.app/Contents/MacOS/stata-mp"
+STATA_ROOT = Path("/Applications/StataNow")
+STATA_EXE = STATA_ROOT / "StataSE.app/Contents/MacOS/stata-se"
 
 SENTINEL = re.compile(r"^\s*__OPENSTAT__(\w+)\s*=\s*([+\-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+\-]?\d+)?|\.)\s*$")
 RC_SENTINEL = re.compile(r"^\s*__OPENSTAT_RETURN_CODE__\s*=\s*(\d+)\s*$")

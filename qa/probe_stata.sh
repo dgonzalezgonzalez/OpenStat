@@ -1,9 +1,9 @@
 #!/bin/bash
-# Run every probe file in a directory through the local Stata 15.1 and print
+# Run every probe file in a directory through the local Stata 19.5 and print
 # each log. Used to capture reference behavior while implementing.
 set -u
-STATA_ROOT="/Applications/Stata 15"
-STATA_EXE="$STATA_ROOT/StataMP.app/Contents/MacOS/stata-mp"
+STATA_ROOT="/Applications/StataNow"
+STATA_EXE="$STATA_ROOT/StataSE.app/Contents/MacOS/stata-se"
 DIR="${1:-/tmp/probes}"
 for f in "$DIR"/*.do; do
   [ -e "$f" ] || continue

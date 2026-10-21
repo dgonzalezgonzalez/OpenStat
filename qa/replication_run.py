@@ -35,8 +35,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / "qa" / "replication" / "_packages"
-STATA_ROOT = Path("/Applications/Stata 15")
-STATA_EXE = STATA_ROOT / "StataMP.app/Contents/MacOS/stata-mp"
+STATA_ROOT = Path("/Applications/StataNow")
+STATA_EXE = STATA_ROOT / "StataSE.app/Contents/MacOS/stata-se"
 
 SENTINEL = re.compile(
     r"^\s*__OPENSTAT__(\w+)\s*=\s*([+\-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+\-]?\d+)?|\.)\s*$")
@@ -94,7 +94,7 @@ def _stata_wrapper(work: Path, do_file: Path, env: dict | None = None) -> Path:
         "local qa_result = _rc\n"
         "display \"__OPENSTAT_RETURN_CODE__=\" `qa_result'\n"
         f'file open _qa using "{work / "stata_result.txt"}", write replace text\n'
-        "file write _qa \"__OPENSTAT_RETURN_CODE__=\" `qa_result' _n"
+        "file write _qa \"__OPENSTAT_RETURN_CODE__=\" `qa_result'\n"
         "file close _qa\n"
         "capture log close _all\n"
         "exit, clear\n", encoding="utf-8")
@@ -103,7 +103,7 @@ def _stata_wrapper(work: Path, do_file: Path, env: dict | None = None) -> Path:
 
 def stata_run(do_file: Path, work: Path, timeout: float = 1800.0,
               env: dict | None = None) -> dict:
-    """Run a do-file in the licensed Stata 15.1 installation."""
+    """Run a do-file in the licensed Stata 19.5 installation."""
     wrapper = _stata_wrapper(work, do_file, env)
     started = time.perf_counter()
     process = subprocess.Popen([str(STATA_EXE), "-b", "do", str(wrapper)], cwd=STATA_ROOT,

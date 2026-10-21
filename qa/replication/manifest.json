@@ -11,6 +11,16 @@
       "do_file": "case.do",
       "files": ["case.do"],
       "copy": ["data/nlsy97/cleaned/y97_all_tscrGPA.dta.zip"]
+    },
+    {
+      "name": "bdmmm_jpe_randomdata",
+      "description": "Journal of Political Economy: Bernard, Blume, Dollar, Ejegod & Johannes, 'The Origins of Firm Heterogeneity: A Production Network Approach'. The package's task0 builds a stand-in dataset so the pipeline runs without the restricted administrative data.",
+      "package": {
+        "url": "https://github.com/glennmagerman/BDMMM",
+        "name": "BDMMM"
+      },
+      "do_file": "case.do",
+      "files": ["case.do"]
     }
   ]
 }
