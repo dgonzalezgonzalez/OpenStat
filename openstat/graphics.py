@@ -4,9 +4,19 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
-from matplotlib.figure import Figure
 
 from .parser import split_outside,tokens
+
+
+def _figure_class():
+    """Return matplotlib's ``Figure``, importing matplotlib on first use.
+
+    matplotlib costs more than a second to import and is needed only when a
+    graph is actually drawn, so it stays out of the import path of a program
+    that never plots.
+    """
+    from matplotlib.figure import Figure
+    return Figure
 
 
 class GraphicsCommands:
@@ -38,7 +48,7 @@ class GraphicsCommands:
         base,mask=self.qualifiers(parts[0]);names=self.varlist(base)
         frame=self.data.loc[mask,names].dropna()
         if any(not np.issubdtype(frame[n].dtype,np.number) for n in names):raise StataError("numeric graph variables required",109)
-        fig=Figure(figsize=(9,6),dpi=100,facecolor="#ffffff");axes=fig.subplots()
+        fig=_figure_class()(figsize=(9,6),dpi=100,facecolor="#ffffff");axes=fig.subplots()
         axes.set_facecolor("#f3f7fa");axes.grid(color="white",linewidth=1.3);axes.set_axisbelow(True)
         for spine in axes.spines.values():spine.set_visible(False)
         if command in {"scatter","line"}:

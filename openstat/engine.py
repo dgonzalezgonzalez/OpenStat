@@ -1534,9 +1534,15 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
                         self.returns[f"p{p}"] = (ordered[int(quantile) - 1] + ordered[int(quantile)]) / 2
                     else:
                         self.returns[f"p{p}"] = ordered[min(int(quantile), n - 1)]
-                from scipy.stats import skew, kurtosis
-                self.returns["skewness"] = skew(values, bias=True)
-                self.returns["kurtosis"] = kurtosis(values, bias=True, fisher=False)
+                # The plain central moments, which are what SciPy's
+                # skew(bias=True) and kurtosis(bias=True, fisher=False)
+                # compute; doing it here keeps scipy out of the import path.
+                deviations = values - values.mean()
+                m2 = (deviations ** 2).mean()
+                m3 = (deviations ** 3).mean()
+                m4 = (deviations ** 4).mean()
+                self.returns["skewness"] = m3 / m2 ** 1.5
+                self.returns["kurtosis"] = m4 / m2 ** 2
             r = self.returns
             self.emit(f"{name:<18} {r['N']:>6} {r['mean']:>13.7g} {r['sd']:>13.7g} "
                       f"{r['min']:>13.7g} {r['max']:>13.7g}")

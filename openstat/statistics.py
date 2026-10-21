@@ -6,9 +6,12 @@ import re
 
 import numpy as np
 import pandas as pd
-from scipy import stats
 
+from .lazy import lazy_module
 from .parser import split_outside, tokens
+
+# ``scipy.stats`` is needed only by ``ttest``; keep it out of the import path.
+stats = lazy_module("scipy.stats")
 
 
 class StatisticalCommands:
