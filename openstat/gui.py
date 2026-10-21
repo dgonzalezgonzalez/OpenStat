@@ -333,6 +333,9 @@ class OpenStatWindow(QMainWindow):
         if engine is None:
             from .engine import Engine
             engine = Engine(cwd=Path.cwd())
+        # Stata reports c(mode) as "interactive" in the GUI and "batch" when
+        # a do-file is run from the command line.
+        engine.mode = "interactive"
         self.engine = engine
         self.running = False
         self.do_path = None

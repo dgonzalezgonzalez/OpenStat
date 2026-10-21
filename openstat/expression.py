@@ -10,11 +10,18 @@ import re
 
 import numpy as np
 import pandas as pd
-from scipy import special, stats
 
 from .formats import format_value
+from .lazy import lazy_module
 from .parser_expr import (Binary, Call, Literal, Name, StringLiteral, Subscript,
                           Unary, parse_expression)
+
+# ``scipy.stats`` costs about three seconds to import and is needed only by
+# the distribution functions below.  The proxy imports it the first time one
+# of those functions is reached, so a do-file that never calls them does not
+# pay for it.
+special = lazy_module("scipy.special")
+stats = lazy_module("scipy.stats")
 
 
 class ExpressionError(ValueError):
@@ -23,6 +30,10 @@ class ExpressionError(ValueError):
 
 class NotFoundError(ExpressionError):
     """A name that Stata cannot resolve: reported as ``r(111)``."""
+
+
+class UndefinedCValue(ExpressionError):
+    """An undefined ``c()`` name: reported as ``r(133)``."""
 
 
 def _missing(value):
@@ -262,6 +273,8 @@ class Evaluator:
             return self.coefficient(*args)
         function = self.functions().get(name)
         if function is None:
+            function = self.distribution_functions().get(name)
+        if function is None:
             raise ExpressionError(f"function {name}() not implemented")
         return function(*args)
 
@@ -270,13 +283,17 @@ class Evaluator:
         groups = {
             "r": e.returns,
             "e": e.estimates,
-            "c": {"N": len(e.data), "k": len(e.data.columns), "pwd": str(e.cwd),
-                  "version": 19.5, "SE": 1, "rc": e.rc},
+            "c": e.cclass,
         }
         if group not in groups:
             raise ExpressionError(f"unknown result class {group}()")
         if key not in groups[group]:
-            raise NotFoundError(f"{group}({key}) not found")
+            if group == "c":
+                # Stata knows a fixed list of c() names; anything else is an
+                # error rather than a missing value.
+                raise UndefinedCValue(f"c({key}) undefined")
+            # An unset r() or e() value is the missing value in Stata.
+            return np.nan
         return groups[group][key]
 
     def coefficient(self, kind, name):
@@ -304,38 +321,20 @@ class Evaluator:
             "missing": self.missing,
             "inrange": self.inrange,
             "inlist": self.inlist,
-            "normal": special.ndtr, "normalden": stats.norm.pdf, "invnormal": special.ndtri,
-            "ttail": lambda df, x: stats.t.sf(x, df), "invttail": lambda df, p: stats.t.isf(p, df),
-            "chi2tail": lambda df, x: stats.chi2.sf(x, df),
-            "invchi2tail": lambda df, p: stats.chi2.isf(p, df),
-            "Ftail": lambda df1, df2, x: stats.f.sf(x, df1, df2),
-            "invFtail": lambda df1, df2, p: stats.f.isf(p, df1, df2),
-            "invlogit": special.expit, "logit": special.logit,
             "runiform": lambda *a: e.rng.uniform(*(a or [0, 1]), size=len(e.data)),
             "rnormal": lambda mu=0, sd=1: e.rng.normal(mu, sd, size=len(e.data)),
             "rpoisson": lambda mu: e.rng.poisson(mu, size=len(e.data)),
             "rbinomial": lambda n, p: e.rng.binomial(n, p, size=len(e.data)),
-            "runiformint": lambda a, b: e.rng.integers(a, b + 1, size=len(e.data)),
+            "runiformint": lambda a, b: e.rng.uniform_int(a, b, size=len(e.data)),
             "rgamma": lambda a, b: e.rng.gamma(a, b, size=len(e.data)),
             "rbeta": lambda a, b: e.rng.beta(a, b, size=len(e.data)),
             "rexp": lambda a: e.rng.exponential(a, size=len(e.data)),
-            "invbinomial": lambda n, p: stats.binom.ppf(p, n),
-            "binomial": lambda n, p: stats.binom.pmf(n, p),
-            "binomialp": lambda n, p, x: stats.binom.sf(x - 1, n, p),
-            "poissonp": lambda mu, x: stats.poisson.sf(x - 1, mu),
-            "nbinomialp": lambda n, p, x: stats.nbinom.sf(x - 1, n, p),
-            "chi2p": lambda df, x: stats.chi2.sf(x, df),
-            "tp": lambda df, t: 2 * stats.t.sf(abs(t), df),
-            "Fp": lambda df1, df2, x: stats.f.sf(x, df1, df2),
-            "ttail2": lambda df, x: 2 * stats.t.sf(abs(x), df),
             "corr": lambda x, y: np.corrcoef(np.asarray(x, float), np.asarray(y, float))[0, 1],
             "cov": lambda x, y: np.cov(np.asarray(x, float), np.asarray(y, float))[0, 1],
             "var": lambda x: np.var(np.asarray(x, float), ddof=1),
             "variance": lambda x: np.var(np.asarray(x, float), ddof=1),
             "sd": lambda x: np.std(np.asarray(x, float), ddof=1),
             "mean": lambda x: np.mean(np.asarray(x, float)),
-            "skewness": lambda x: stats.skew(np.asarray(x, float), bias=True),
-            "kurtosis": lambda x: stats.kurtosis(np.asarray(x, float), bias=True, fisher=False),
             # Text
             "real": lambda x: pd.to_numeric(x, errors="coerce"),
             "string": self.string_function,
@@ -373,6 +372,44 @@ class Evaluator:
             "el": self.element,
             "J": lambda r, c, x: np.full((int(r), int(c)), x),
         }
+
+    # ------------------------------------------------------------------
+    # Distribution functions
+    # ------------------------------------------------------------------
+    def distribution_functions(self):
+        """The functions that SciPy implements.
+
+        They are resolved on demand so that a program which never calls one
+        of them does not import SciPy at all.  The table is built once and
+        kept, because building it touches the SciPy proxies.
+        """
+        table = getattr(self, "_distribution_table", None)
+        if table is None:
+            table = {
+                "normal": special.ndtr, "normalden": stats.norm.pdf,
+                "invnormal": special.ndtri,
+                "ttail": lambda df, x: stats.t.sf(x, df),
+                "invttail": lambda df, p: stats.t.isf(x, df),
+                "chi2tail": lambda df, x: stats.chi2.sf(x, df),
+                "invchi2tail": lambda df, p: stats.chi2.isf(x, df),
+                "Ftail": lambda df1, df2, x: stats.f.sf(x, df1, df2),
+                "invFtail": lambda df1, df2, p: stats.f.isf(x, df1, df2),
+                "invlogit": special.expit, "logit": special.logit,
+                "invbinomial": lambda n, p: stats.binom.ppf(p, n),
+                "binomial": lambda n, p: stats.binom.pmf(n, p),
+                "binomialp": lambda n, p, x: stats.binom.sf(x - 1, n, p),
+                "poissonp": lambda mu, x: stats.poisson.sf(x - 1, mu),
+                "nbinomialp": lambda n, p: stats.nbinom.sf(x - 1, n, p),
+                "chi2p": lambda df, x: stats.chi2.sf(x, df),
+                "tp": lambda df, t: 2 * stats.t.sf(abs(t), df),
+                "Fp": lambda df1, df2, x: stats.f.sf(x, df1, df2),
+                "ttail2": lambda df, x: 2 * stats.t.sf(abs(x), df),
+                "skewness": lambda x: stats.skew(np.asarray(x, float), bias=True),
+                "kurtosis": lambda x: stats.kurtosis(np.asarray(x, float), bias=True,
+                                                    fisher=False),
+            }
+            self._distribution_table = table
+        return table
 
     @staticmethod
     def minimum(*args):

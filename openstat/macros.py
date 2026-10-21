@@ -59,11 +59,16 @@ EXTENDED_FUNCTIONS = {
 }
 
 
-def expand_macros(text: str, locals: dict, globals: dict, depth: int = 0) -> str:
+def expand_macros(text: str, locals: dict, globals: dict, depth: int = 0,
+                  returns: dict | None = None, eclass: dict | None = None,
+                  cclass: dict | None = None) -> str:
     """Expand `` `name' `` and `` $name `` references.
 
     Compound double quotes (`` `"..."' ``) protect their content from
     expansion, matching Stata's behaviour.
+
+    ``returns``, ``eclass`` and ``cclass`` supply the values behind
+    `` `r(name)' ``, `` `e(name)' `` and `` `c(name)' ``.
     """
     if depth > 30:
         raise MacroError("macro expansion recursion limit")
@@ -71,13 +76,10 @@ def expand_macros(text: str, locals: dict, globals: dict, depth: int = 0) -> str
     while index < length:
         char = text[index]
         if char == '"':
-            # A plain double quote protects the next macro reference.
-            end = text.find('"', index + 1)
-            if end < 0:
-                out += text[index:]
-                break
-            out += text[index:end + 1]
-            index = end + 1
+            # A plain double quote does not protect a macro reference:
+            # Stata expands "$name" inside a string.
+            out += char
+            index += 1
             continue
         if text.startswith('`"', index):
             end = text.find('"\'', index + 2)
@@ -88,12 +90,18 @@ def expand_macros(text: str, locals: dict, globals: dict, depth: int = 0) -> str
             index = end + 2
             continue
         if char == "`":
-            match = re.match(r"`([A-Za-z_]\w*)'", text[index:])
+            match = re.match(r"`([A-Za-z_]\w*)(?:\(([A-Za-z_]\w*)\))?'", text[index:])
             if match:
                 name = match[1]
+                if name in {"r", "e", "c"} and match[2] is not None:
+                    resolved = _resolve_class(name, match[2], returns, eclass, cclass)
+                    out += expand_macros(resolved, locals, globals, depth + 1)
+                    index += match.end()
+                    continue
+                # A backtick names a local macro; a dollar sign names a
+                # global one.  Stata does not fall back from one to the
+                # other.
                 value = locals.get(name)
-                if value is None:
-                    value = globals.get(name)
                 if value is None:
                     out += match[0]
                 else:
@@ -106,8 +114,6 @@ def expand_macros(text: str, locals: dict, globals: dict, depth: int = 0) -> str
                 name = match[1] or match[2]
                 value = globals.get(name)
                 if value is None:
-                    value = locals.get(name)
-                if value is None:
                     out += match[0]
                 else:
                     out += expand_macros(str(value), locals, globals, depth + 1)
@@ -116,6 +122,43 @@ def expand_macros(text: str, locals: dict, globals: dict, depth: int = 0) -> str
         out += char
         index += 1
     return out
+
+
+#: The format Stata uses when it turns a number into macro text.  Measured
+#: on Stata 19.5: `` `r(mean)' ``, `` `e(b)' `` and `` `c(pi)' `` all expand
+#: to the *unpadded* rendering of ``%18.0g`` -- 18 significant characters
+#: minus the sign, the decimal point and the exponent.
+MACRO_FORMAT = "%18.0g"
+
+
+def _resolve_class(name: str, key: str, returns: dict | None, eclass: dict | None,
+                   cclass: dict | None) -> str | None:
+    """Return the value of `` `r(name)' ``, `` `e(name)' `` or `` `c(name)' ``.
+
+    Stata expands these to *text*, not to a number: a numeric value is
+    rendered with ``%18.0g`` and the padding is removed, so `` `c(pi)'``
+    expands to ``3.141592653589793`` and `` `r(mean)' `` to
+    ``.58553338``.  The text is then used wherever the macro appeared -- in
+    a string literal it is shown verbatim, in an expression it is re-parsed
+    and re-rendered with the default numeric format.
+
+    A name that is not set expands to the empty string: Stata does not
+    complain about an unknown ``r()``, ``e()`` or ``c()`` name in macro
+    position.
+    """
+    table = {"r": returns, "e": eclass, "c": cclass}[name]
+    if not table or key not in table:
+        return ""
+    value = table[key]
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "1" if value else "0"
+    if isinstance(value, (int, float)):
+        from .formats import format_value
+
+        return format_value(float(value), MACRO_FORMAT).strip()
+    return str(value)
 
 
 def _split_words(text: str) -> list[str]:

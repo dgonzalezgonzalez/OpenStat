@@ -9,6 +9,7 @@ from __future__ import annotations
 import copy
 import fnmatch
 import json
+import math
 import os
 import re
 import subprocess
@@ -20,7 +21,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .expression import Evaluator, ExpressionError, NotFoundError, truth
+from .expression import (Evaluator, ExpressionError, NotFoundError, UndefinedCValue,
+                         truth)
+from .cclass import build_cclass
 from .panel import PanelCommands
 from .rng import RandomGenerator
 from .formats import format_value
@@ -123,7 +126,12 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         self._quiet = 0
         self._log = None
         self.rc = 0
+        self.last_command = ""
+        self.last_rc = 0
+        self.last_filename = ""
+        self.mode = "batch"
         self.rng = RandomGenerator()
+        self.cclass = build_cclass(self)
         self.packages = PackageManager(Path(ado_dir) if ado_dir else None)
         self.mata = Mata(self)
         self.evaluator = Evaluator(self)
@@ -190,7 +198,13 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         return path if path.is_absolute() else self.cwd / path
 
     def expand(self, text):
-        return expand_macros(text, self.locals, self.globals)
+        # ``c()`` reports the state of the data as it is *now*, so the table
+        # is rebuilt before every expansion: `` `c(k)' `` must see the
+        # variables a previous ``generate`` added.
+        self.cclass = build_cclass(self)
+        return expand_macros(text, self.locals, self.globals,
+                             returns=self.returns, eclass=self.estimates,
+                             cclass=self.cclass)
 
     def evaluate(self, text):
         try:
@@ -204,6 +218,8 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             return value
         except NotFoundError as ex:
             raise StataError(str(ex), 111) from ex
+        except UndefinedCValue as ex:
+            raise StataError(str(ex), 133) from ex
         except (ExpressionError, KeyError) as ex:
             raise StataError(str(ex), 198) from ex
 
@@ -250,6 +266,8 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
                         index += 1
                         continue
                     command = ALIASES.get(command, command)
+                    self.last_command = command
+                    self.cclass = build_cclass(self)
                     if command in {"forvalues", "foreach", "while", "if"} and text.endswith("{"):
                         index = self._block(statements, index, command)
                         continue
@@ -999,11 +1017,35 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             value = self._extended_macro(value[1:].strip())
         elif value.startswith("="):
             evaluated = self.evaluate(value[1:])
-            value = self._format(evaluated)
+            # Stata keeps the full precision of the value in the macro; it
+            # is only the *display* of the macro that rounds.
+            value = self._macro_text(evaluated)
         else:
             value = unquote(value)
         store[name] = value
         self.rc = 0
+
+    @staticmethod
+    def _macro_text(value):
+        """The text Stata stores in a macro when a number is assigned to it."""
+        if isinstance(value, str):
+            return value
+        if isinstance(value, (pd.Series, np.ndarray)):
+            if len(value) == 0:
+                return "."
+            value = value.iloc[0] if isinstance(value, pd.Series) else value[0]
+        if isinstance(value, (bool, np.bool_)):
+            return "1" if value else "0"
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return str(value)
+        if math.isnan(number):
+            return "."
+        from .formats import format_value
+
+        # Stata's macro text is the %18.0g rendering without the padding.
+        return format_value(number, "%18.0g").strip()
 
     def _extended_macro(self, text):
         """Evaluate ``: word count ...`` style extended macro functions."""
