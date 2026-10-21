@@ -19,7 +19,8 @@ class IOCommands:
     def _data_command(self, command, arg):
         from .engine import StataError
 
-        metadata_names = ("variable_labels", "value_labels", "value_label_names", "formats", "dataset_label")
+        metadata_names = ("variable_labels", "value_labels", "value_label_names", "formats",
+                          "storage_types", "dataset_label")
 
         def metadata():
             return {name: copy.deepcopy(getattr(self, name)) for name in metadata_names}
@@ -33,17 +34,18 @@ class IOCommands:
             self.value_labels = {}
             self.value_label_names = {}
             self.formats = {}
+            self.storage_types = {}
             self.dataset_label = ""
 
         def retain_metadata(columns):
-            for name in ("variable_labels", "value_label_names", "formats"):
+            for name in ("variable_labels", "value_label_names", "formats", "storage_types"):
                 setattr(self, name, {key: value for key, value in getattr(self, name).items() if key in columns})
 
         def merge_metadata(master, using, new_columns):
             restore_metadata(master)
             for key, value in using["value_labels"].items():
                 self.value_labels.setdefault(key, value)
-            for name in ("variable_labels", "value_label_names", "formats"):
+            for name in ("variable_labels", "value_label_names", "formats", "storage_types"):
                 target = getattr(self, name)
                 for key in new_columns:
                     if key in using[name]:
@@ -125,6 +127,7 @@ class IOCommands:
                 self.data = old_data
                 restore_metadata(old_metadata)
                 raise
+            self.last_filename = str(path)
             self.emit(f"({len(self.data):,} observations read)")
             return True
 
@@ -411,7 +414,7 @@ class IOCommands:
                         rows.append(row)
                 self.data = pd.DataFrame(rows, columns=keys + [j] + constant + stubs).sort_values(keys + [j], kind="stable").reset_index(drop=True)
                 retain_metadata(keys + constant)
-                for name in ("variable_labels", "value_label_names", "formats"):
+                for name in ("variable_labels", "value_label_names", "formats", "storage_types"):
                     target = getattr(self, name)
                     for stub, mapping in mappings.items():
                         first = mapping[min(mapping)]
@@ -443,7 +446,7 @@ class IOCommands:
                     rows.append(row)
                 self.data = pd.DataFrame(rows, columns=keys + constant + [f"{stub}{level}" for stub in stubs for level in levels]).sort_values(keys, kind="stable").reset_index(drop=True)
                 retain_metadata(keys + constant)
-                for name in ("variable_labels", "value_label_names", "formats"):
+                for name in ("variable_labels", "value_label_names", "formats", "storage_types"):
                     target = getattr(self, name)
                     for stub in stubs:
                         if stub in original_meta[name]:

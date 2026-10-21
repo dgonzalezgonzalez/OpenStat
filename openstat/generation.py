@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from .parser import split_outside
+from .storage import DEFAULT_FORMAT, DEFAULT_TYPE, INTEGER_RANGE
 
 
 class GenerationCommands:
@@ -37,6 +38,10 @@ class GenerationCommands:
                 raise StataError(f"variable {name} not found", 111)
         else:
             self._new_name(name)
+        if storage is None and command in {"generate", "egen"}:
+            # Stata's untyped ``generate`` creates a float variable, unless
+            # ``set type`` changed the default.
+            storage = self.default_type
         recursive = command in {"generate", "replace"} and re.search(
             r"\b" + re.escape(name) + r"\s*\[", expression)
         if recursive:
@@ -73,10 +78,12 @@ class GenerationCommands:
                 value = value.str.slice(0, int(storage[3:]))
         elif storage:
             numeric = pd.to_numeric(value, errors="raise")
-            if storage in {"byte", "int", "long"}:
-                bounds = {"byte": (-127, 100), "int": (-32767, 32740),
-                          "long": (-2147483647, 2147483620)}[storage]
-                numeric = np.trunc(numeric).where(numeric.between(*bounds))
+            if storage in INTEGER_RANGE:
+                # An integer storage type truncates, and a value outside the
+                # type's range becomes missing rather than being clamped.
+                low, high = INTEGER_RANGE[storage]
+                truncated = np.trunc(numeric)
+                numeric = truncated.where(truncated.between(low, high))
             value = numeric.astype(np.float32 if storage == "float" else np.float64)
         if command != "replace":
             self.data[name] = "" if value.dtype == object or pd.api.types.is_string_dtype(value.dtype) else np.nan
@@ -85,7 +92,9 @@ class GenerationCommands:
         except (ValueError, TypeError) as ex:
             raise StataError(f"type mismatch: {ex}", 109) from ex
         if storage:
-            self.formats[name] = storage
+            self.storage_types[name] = storage
+            self.formats[name] = (DEFAULT_FORMAT[storage] if storage in DEFAULT_FORMAT
+                                  else "%9s")
 
     def _egen_value(self, name, expression, options, mask):
         from .engine import StataError

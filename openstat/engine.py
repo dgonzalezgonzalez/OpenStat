@@ -34,6 +34,7 @@ from .data_commands import IOCommands
 from .generation import GenerationCommands
 from .metadata import MetadataCommands
 from .program_support import ProgramSupportCommands
+from .storage import DEFAULT_FORMAT, DEFAULT_TYPE, READSTAT_TYPE
 from .syntax import SyntaxCommand, SyntaxError_
 
 
@@ -93,6 +94,8 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         self.value_labels = {}
         self.value_label_names = {}
         self.formats = {}
+        self.storage_types = {}
+        self.default_type = DEFAULT_TYPE
         self.dataset_label = ""
         self.notes = {}
         self.locals = {}
@@ -718,6 +721,10 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         self.value_labels = meta.value_labels
         self.value_label_names = meta.variable_to_label
         self.formats = meta.original_variable_types
+        self.storage_types = {
+            name: READSTAT_TYPE.get(kind, kind)
+            for name, kind in meta.readstat_variable_types.items()
+        }
         return data
 
     def _write(self, path, version=118):
@@ -771,6 +778,7 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             self.value_labels = {}
             self.value_label_names = {}
             self.formats = {}
+            self.storage_types = {}
             self.dataset_label = ""
             if arg == "all":
                 self.scalars.clear()
@@ -890,7 +898,8 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             if self._preserved is not None:
                 raise StataError("already preserved", 621)
             self._preserved = copy.deepcopy((self.data, self.variable_labels, self.value_labels,
-                                             self.value_label_names, self.formats, self.dataset_label))
+                                             self.value_label_names, self.formats,
+                                             self.storage_types, self.dataset_label))
             return
         if command == "restore":
             opt = self.options(arg.lstrip(", "), {"not", "preserve"})
@@ -898,7 +907,7 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
                 raise StataError("nothing to restore", 622)
             if "not" not in opt:
                 (self.data, self.variable_labels, self.value_labels, self.value_label_names,
-                 self.formats, self.dataset_label) = copy.deepcopy(self._preserved)
+                 self.formats, self.storage_types, self.dataset_label) = copy.deepcopy(self._preserved)
             if "preserve" not in opt:
                 self._preserved = None
             return
@@ -1226,6 +1235,11 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         if name == "seed":
             self.rng.set_seed(int(value))
             return
+        if name == "type":
+            if value not in {"float", "double"}:
+                raise StataError("set type accepts only float or double")
+            self.default_type = value
+            return
         if name in {"more", "varabbrev", "compress", "sort", "trace", "quiet"}:
             if name == "varabbrev" and value not in {"off", "on"}:
                 raise StataError("invalid varabbrev")
@@ -1457,6 +1471,43 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
     # ------------------------------------------------------------------
     # Descriptive statistics
     # ------------------------------------------------------------------
+    def _describe_variables(self, names):
+        """Render ``describe`` the way Stata does.
+
+        Stata's layout is a two-row header and one row per variable:
+
+            Variable      Storage   Display    Value
+                name         type    format    label      Variable label
+
+        The columns sit at offsets 0, 16, 24, 35 and 46.
+        """
+        rule = "-" * 255
+        self.emit("Contains data")
+        # The count is right-justified so that it ends at column 27, and the
+        # line is padded out to 46 characters.
+        self.emit(f"{' Observations:':<13}{f'{len(self.data):,}':>14}".ljust(46))
+        self.emit(f"{'    Variables:':<15}{f'{len(self.data.columns):,}':>13}".ljust(46))
+        self.emit(rule)
+        self.emit(f"{'Variable':<14}{'Storage':<10}{'Display':<11}{'Value'}")
+        self.emit(f"{'    name':<17}{'type':<8}{'format':<10}{'label':<11}Variable label")
+        self.emit(rule)
+        for name in names:
+            storage = self.storage_types.get(name) or self._infer_storage(name)
+            display = self.formats.get(name) or DEFAULT_FORMAT.get(storage, "%9s")
+            label = self.value_label_names.get(name, "")
+            self.emit(f"{name:<16}{storage:<8}{display:<11}{label:<11}"
+                      f"{self.variable_labels.get(name, '')}")
+        self.emit(rule)
+        self.emit("Sorted by: ")
+        self.emit("     Note: Dataset has changed since last saved.")
+
+    def _infer_storage(self, name):
+        """Guess a variable's storage type when it was never recorded."""
+        column = self.data[name]
+        if pd.api.types.is_string_dtype(column.dtype) or column.dtype == object:
+            return "str%d" % max(column.dropna().astype(str).str.len().max() or 1, 1)
+        return "double"
+
     def _describe(self, command, arg):
         allowed = {"detail", "meanonly", "separator", "varlist", "fweights", "iweights",
                    "aweights", "pweights"} if command in {"summarize", "tabstat", "mean", "total"} \
@@ -1483,9 +1534,7 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             return
         if command in {"describe", "codebook", "inspect"}:
             self.returns = {"N": len(self.data), "k": len(self.data.columns)}
-            self.emit(f"Observations: {len(self.data):,}\nVariables: {len(self.data.columns):,}\n{self.dataset_label}")
-            for name in names:
-                self.emit(f"{name:<24} {str(self.data[name].dtype):<12} {self.variable_labels.get(name, '')}")
+            self._describe_variables(names)
             return
         if command == "list":
             if len(frame) > 1000:
