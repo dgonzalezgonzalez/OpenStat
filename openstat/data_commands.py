@@ -19,10 +19,10 @@ class IOCommands:
     def _data_command(self, command, arg):
         from .engine import StataError
 
-        metadata_names = ("variable_labels", "value_labels", "value_label_names", "formats", "dataset_label")
+        metadata_names = ("variable_labels", "value_labels", "value_label_names", "formats", "dataset_label", "_storage_types")
 
         def metadata():
-            return {name: copy.deepcopy(getattr(self, name)) for name in metadata_names}
+            return {name: copy.deepcopy(getattr(self, name, {} if name=='_storage_types' else None)) for name in metadata_names}
 
         def restore_metadata(values):
             for name, value in values.items():
@@ -34,16 +34,17 @@ class IOCommands:
             self.value_label_names = {}
             self.formats = {}
             self.dataset_label = ""
+            self._storage_types = {}
 
         def retain_metadata(columns):
-            for name in ("variable_labels", "value_label_names", "formats"):
+            for name in ("variable_labels", "value_label_names", "formats", "_storage_types"):
                 setattr(self, name, {key: value for key, value in getattr(self, name).items() if key in columns})
 
         def merge_metadata(master, using, new_columns):
             restore_metadata(master)
             for key, value in using["value_labels"].items():
                 self.value_labels.setdefault(key, value)
-            for name in ("variable_labels", "value_label_names", "formats"):
+            for name in ("variable_labels", "value_label_names", "formats", "_storage_types"):
                 target = getattr(self, name)
                 for key in new_columns:
                     if key in using[name]:

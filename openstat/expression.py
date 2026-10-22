@@ -8,10 +8,14 @@ from __future__ import annotations
 import ast
 import operator
 import re
+import platform
+from datetime import datetime
+import unicodedata
 
 import numpy as np
 import pandas as pd
 from scipy import special, stats
+from .parser import quoted_end,unquote
 
 
 class ExpressionError(ValueError):
@@ -50,6 +54,42 @@ class Evaluator:
         return series.fillna(0).cumsum().to_numpy()
 
     @staticmethod
+    def string_map(value,function):
+        if isinstance(value,str):return function(value)
+        if np.isscalar(value):return function('' if pd.isna(value) else str(value))
+        return pd.Series(value).fillna('').map(function)
+
+    def regex_replace(self,value,pattern,replacement,unicode=False,all_matches=False):
+        if unicode:
+            import regex as regex_engine
+        else:regex_engine=re
+        return self.string_map(value,lambda text:regex_engine.sub(pattern,replacement,text,count=0 if all_matches else 1))
+
+    def regex_match(self,value,pattern,unicode=False):
+        if unicode:
+            import regex as regex_engine
+        else:regex_engine=re
+        if isinstance(value,str):
+            match=regex_engine.search(pattern,value);self.engine._regex_matches=match;return bool(match)
+        matches=pd.Series(value).fillna('').map(lambda text:regex_engine.search(pattern,str(text)))
+        self.engine._regex_matches=matches;return matches.map(bool).astype(float)
+
+    def regex_group(self,index):
+        matches=getattr(self.engine,'_regex_matches',None)
+        def group(match):
+            if match is None:return ''
+            try:return match.group(int(index)) or ''
+            except IndexError:return ''
+        return matches.map(group) if isinstance(matches,pd.Series) else group(matches)
+
+    def formatted_string(self,value,fmt=None):
+        if fmt is None:fmt='%9.0g'
+        if not isinstance(fmt,str):raise ExpressionError('string() format must be a string')
+        def render(number):return self.engine._metadata_numeric_format(number,fmt).strip()
+        if np.isscalar(value):return render(value)
+        return pd.Series(value).map(render)
+
+    @staticmethod
     def element(value,row,column):
         array=np.atleast_2d(value)
         if row!=int(row) or column!=int(column):return np.nan
@@ -60,12 +100,22 @@ class Evaluator:
         expression = expression.strip()
         # Protect all string literals before translating operators and names.
         strings = []
-        def protect(m):
-            strings.append(m.group())
-            return f"__string_{len(strings)-1}"
-        text = re.sub(r'"[^"\n]*"', protect, expression)
+        chunks=[];index=0
+        while index<len(expression):
+            if expression[index]=='"' or expression.startswith('`"',index):
+                end=quoted_end(expression,index)
+                if end is None:raise ExpressionError('unclosed string')
+                strings.append(unquote(expression[index:end]));chunks.append(f'__string_{len(strings)-1}');index=end
+            else:chunks.append(expression[index]);index+=1
+        text=''.join(chunks)
         text = re.sub(r'\b(r|e|c)\(([A-Za-z_][\w]*)\)', r'__result("\1","\2")', text)
-        text = re.sub(r'_(b|se)\[([\w.]+)\]', r'__coef("\1","\2")', text)
+        coefficients=[]
+        def protect_coefficient(match):
+            coefficients.append((match[1],match[2]))
+            return f'__coefficient_{len(coefficients)-1}'
+        text = re.sub(r'_(b|se)\[([\w.#]+)\]', protect_coefficient, text)
+        text = re.sub(r'(?<![\w.])([LFDS]\d*\.(?:[LFDS]\d*\.)*[A-Za-z_]\w*)',r'__ts("\1")',text,flags=re.I)
+        for index,(kind,name) in enumerate(coefficients):text=text.replace(f'__coefficient_{index}',f'__coef("{kind}","{name}")')
         text = text.replace("~=" , "!=").replace("!=" , " != ")
         text = text.replace("^", "**").replace("&", " and ").replace("|", " or ")
         text = re.sub(r'!(?!=)|~(?!=)', "~", text)
@@ -86,7 +136,7 @@ class Evaluator:
         if isinstance(node, ast.Name):
             name = node.id
             if name.startswith("__string_"):
-                return self.strings[int(name.rsplit("_", 1)[1])][1:-1]
+                return self.strings[int(name.rsplit("_", 1)[1])]
             if name == "__missing":
                 return np.nan
             if name == "_n":
@@ -99,8 +149,11 @@ class Evaluator:
             if name == "_pi":
                 return np.pi
             if name in e.data:
-                if getattr(e,"_observation",None) is not None:return e.data[name].iloc[e._observation]
-                return e.data[name]
+                if getattr(e,"_observation",None) is not None:
+                    value=e.data[name].iloc[e._observation]
+                    return float(value) if isinstance(value,(np.integer,np.floating)) else value
+                value=e.data[name]
+                return value.astype(float) if pd.api.types.is_numeric_dtype(value.dtype) else value
             if name in e.scalars:
                 return e.scalars[name]
             if name in e.matrices:
@@ -149,7 +202,8 @@ class Evaluator:
             index = self.visit(node.slice)
             if isinstance(array, pd.Series):
                 if np.isscalar(index):
-                    return array.iloc[int(index)-1] if 1 <= int(index) <= len(array) else np.nan
+                    value=array.iloc[int(index)-1] if 1 <= int(index) <= len(array) else np.nan
+                    return float(value) if isinstance(value,(np.integer,np.floating)) else value
                 positions = np.asarray(index, dtype=int)-1
                 return pd.Series([array.iloc[i] if 0 <= i < len(array) else np.nan for i in positions], index=e.data.index)
             if isinstance(index, tuple):
@@ -162,12 +216,22 @@ class Evaluator:
             name = node.func.id
             if name == "__result":
                 group, key = args
-                groups = {"r": e.returns, "e": e.estimates, "c": {"N": len(e.data), "k": len(e.data.columns), "pwd": str(e.cwd), "version": 19.5}}
+                if group=='e' and key=='sample':
+                    if not hasattr(e,'_sample_mask') or len(e._sample_mask)!=len(e.data):raise ExpressionError('estimation sample is unavailable')
+                    return e._sample_mask.astype(float)
+                constants={"N":len(e.data),"k":len(e.data.columns),"pwd":str(e.cwd),"version":19.5,"stata_version":19.5,
+                           "os":'Windows' if platform.system()=='Windows' else platform.system(),"machine_type":'PC (64-bit x86-64)' if platform.system()=='Windows' else platform.machine(),
+                           "current_date":datetime.now().strftime('%d %b %Y').lstrip('0'),"current_time":datetime.now().strftime('%H:%M:%S'),
+                           "username":__import__('getpass').getuser(),"filename":getattr(e,'_data_filename',''),"maxvar":32767,"max_N_theory":2**40-1,"processors":__import__('os').cpu_count() or 1}
+                groups = {"r": e.returns, "e": e.estimates, "c": constants}
                 if key not in groups[group]:
                     raise ExpressionError(f"{group}({key}) not found")
                 return groups[group][key]
             if name == "__coef":
                 return e.coefficients[args[1]][0 if args[0] == "b" else 1]
+            if name=='__ts':
+                from .design import time_series
+                return time_series(e,args[0])
             funcs = {
                 "abs": np.abs, "sqrt": np.sqrt, "exp": np.exp, "ln": np.log, "log": np.log,
                 "log10": np.log10, "sin": np.sin, "cos": np.cos, "tan": np.tan,
@@ -187,13 +251,31 @@ class Evaluator:
                 "rpoisson": lambda mu: e.rng.poisson(mu, size=len(e.data)),
                 "sum": self.running_sum,
                 "real": lambda x: pd.to_numeric(x, errors="coerce"),
-                "string": lambda x,*fmt: pd.Series(x).astype(str) if not np.isscalar(x) else str(x),
-                "strlen": lambda x: pd.Series(x).str.len() if not isinstance(x,str) else len(x),
+                "string": self.formatted_string,
+                "strlen": lambda x:self.string_map(x,lambda text:len(text.encode('utf-8'))),
+                "length": lambda x:self.string_map(x,lambda text:len(text.encode('utf-8'))),
+                "ustrlen": lambda x:self.string_map(x,len),
+                "abbrev": lambda x,n:self.string_map(x,lambda text:text if len(text)<=int(n) else text[:max(0,int(n)-2)]+'~'+text[-1:]),
                 "lower": lambda x: x.str.lower() if isinstance(x,pd.Series) else x.lower(),
                 "upper": lambda x: x.str.upper() if isinstance(x,pd.Series) else x.upper(),
+                "strlower": lambda x:self.string_map(x,str.lower),"strupper":lambda x:self.string_map(x,str.upper),
+                "ustrlower": lambda x:self.string_map(x,str.lower),"ustrupper":lambda x:self.string_map(x,str.upper),
+                "ustrnormalize":lambda x,mode:self.string_map(x,lambda text:unicodedata.normalize(str(mode).upper(),text)),
                 "trim": lambda x: x.str.strip() if isinstance(x,pd.Series) else x.strip(),
+                "strtrim":lambda x:self.string_map(x,lambda text:text.strip(' ')),"ustrtrim":lambda x:self.string_map(x,str.strip),
+                "itrim":lambda x:self.string_map(x,lambda text:re.sub(' +',' ',text)),
+                "strpos":lambda x,sub:self.string_map(x,lambda text:text.find(sub)+1),
+                "ustrpos":lambda x,sub:self.string_map(x,lambda text:text.find(sub)+1),
+                "subinstr":lambda x,old,new,count:self.string_map(x,lambda text:text.replace(old,new,-1 if pd.isna(count) else int(count))),
+                "regexm":self.regex_match,"regexs":self.regex_group,
+                "regexr":lambda x,p,r:self.regex_replace(x,p,r),
+                "ustrregexm":lambda x,p:self.regex_match(x,p,unicode=True),
+                "ustrregexra":lambda x,p,r:self.regex_replace(x,p,r,unicode=True,all_matches=True),
+                "ustrregexrf":lambda x,p,r:self.regex_replace(x,p,r,unicode=True),
+                "char":lambda number:chr(int(number)),"uchar":lambda number:chr(int(number)),
                 "substr": lambda x,a,b: x.str.slice(a-1,a-1+b) if isinstance(x,pd.Series) else x[a-1:a-1+b],
                 "word": lambda x,n: str(x).split()[int(n)-1] if 0<int(n)<=len(str(x).split()) else "",
+                "wordcount":lambda x:self.string_map(x,lambda text:len(text.split())),
                 "rowsof": lambda x: np.atleast_2d(x).shape[0], "colsof": lambda x: np.atleast_2d(x).shape[1],
                 "el": self.element,
             }

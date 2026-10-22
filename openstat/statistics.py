@@ -9,49 +9,75 @@ import pandas as pd
 from scipy import stats
 
 from .parser import split_outside, tokens
+from .design import build_design,parse_weight,independent_columns,time_series
 
 
 class StatisticalCommands:
     def _statistics(self,command,arg):
         from .engine import StataError
         import statsmodels.api as sm
+        if command in {'ivregress','ivreg2'}:
+            from .instrumental import instrumental_regression
+            return instrumental_regression(self,command,arg)
         parts=split_outside(arg)
         if command in {"regress","logit","logistic","probit","poisson"}:
-            opt=self.options(",".join(parts[1:]),{"noconstant","robust","vce","level","nolog","irr","or"})
+            opt=self.options(",".join(parts[1:]),{"noconstant","robust","vce","cluster","level","nolog","irr","or"})
             if "irr" in opt and command!="poisson" or "or" in opt and command not in {"logit","logistic"}:
                 raise StataError("invalid exponentiated coefficient display option",198)
-            base,mask=self.qualifiers(parts[0]);names=base.split()
+            weighted_spec,weight_kind,weight_expression=parse_weight(parts[0])
+            base,mask=self.qualifiers(weighted_spec);names=base.split(maxsplit=1)
             if len(names)<1:raise StataError("dependent variable required")
-            dependent=self.varlist(names[0])
-            if len(dependent)!=1:raise StataError("one dependent variable required")
-            regressors=[]
-            for name in names[1:]:
-                if any(c in name for c in "#.["):
-                    raise StataError("factor variables, interactions, time operators and weights not implemented",199)
-                regressors+=self.varlist(name)
-            regressors=list(dict.fromkeys(regressors))
-            frame=self.data[[dependent[0]]+regressors].copy()
-            if any(not pd.api.types.is_numeric_dtype(frame[c]) for c in frame):raise StataError("numeric variables required",109)
-            valid=mask & frame.notna().all(axis=1) & np.isfinite(frame).all(axis=1)
-            sample=frame.loc[valid]
-            x=sample[regressors].astype(float)
+            dependent=[names[0]]
+            outcome=time_series(self,names[0])
+            if not pd.api.types.is_numeric_dtype(outcome):raise StataError('numeric outcome required',109)
+            design_mask=mask & outcome.notna()
+            weights=pd.Series(1.,index=self.data.index)
+            if weight_kind:
+                if command!='regress':raise StataError('weights for nonlinear estimators not implemented',199)
+                if weight_kind=='iw':raise StataError('importance weights not yet implemented',199)
+                weights=pd.Series(self.evaluate(weight_expression),index=self.data.index,dtype=float)
+                if (weights.dropna()<0).any():raise StataError('negative weights not allowed',402)
+                if weight_kind=='fw' and (weights.dropna()!=np.floor(weights.dropna())).any():raise StataError('frequency weights must be integers',401)
+                design_mask &= weights.gt(0)&np.isfinite(weights)
+            design=build_design(self,names[1] if len(names)>1 else '',design_mask)
+            frame=design.frame
+            valid=design_mask & frame.notna().all(axis=1) & np.isfinite(frame).all(axis=1)
+            x,omitted=independent_columns(frame.loc[valid].astype(float),constant='noconstant' not in opt)
+            regressors=list(x.columns)
             if "noconstant" not in opt:x["_cons"]=1.
-            y=sample[dependent[0]].astype(float)
+            y=outcome.loc[valid].astype(float)
             if len(x)==0:raise StataError("no observations",2000)
             if len(x)<=len(x.columns):raise StataError("insufficient residual degrees of freedom",2001)
-            if np.linalg.matrix_rank(x.to_numpy())<len(x.columns):raise StataError("collinear design not supported; remove redundant regressors",459)
-            vce=opt.get("vce", "robust" if "robust" in opt else "ols")
+            if 'cluster' in opt and 'vce' in opt:raise StataError('cluster() and vce() may not be combined',198)
+            vce=opt.get("vce",'cluster '+str(opt['cluster']) if 'cluster' in opt else "robust" if "robust" in opt or weight_kind=='pw' else "ols")
             cov_kw={}
             cov_type="nonrobust"
             if vce=="robust":cov_type="HC1" if command=="regress" else "HC0"
             elif isinstance(vce,str) and vce.startswith("cluster "):
+                if len(vce.split())!=2:raise StataError('multiple clustering variables not yet implemented',199)
                 cluster=vce.split()[1]
                 self.varlist(cluster)
                 if self.data.loc[valid,cluster].isna().any():raise StataError("missing cluster values unsupported",459)
                 cov_type="cluster";cov_kw={"groups":self.data.loc[valid,cluster].to_numpy(),"use_correction":True}
             elif vce not in {"ols","oim"}:raise StataError(f"vce({vce}) not implemented",199)
+            observation_count=int(weights.loc[valid].sum()) if weight_kind=='fw' else len(y)
+            residual_df=observation_count-len(x.columns)
+            if residual_df<=0:raise StataError('insufficient residual degrees of freedom',2001)
             if command=="regress":
-                fit=sm.OLS(y,x).fit(cov_type=cov_type,cov_kwds=cov_kw,use_t=True)
+                model=sm.WLS(y,x,weights=weights.loc[valid]) if weight_kind else sm.OLS(y,x)
+                fit=model.fit(cov_type=cov_type,cov_kwds=cov_kw,use_t=True)
+                if weight_kind=='fw':
+                    w=weights.loc[valid].to_numpy();xx=x.to_numpy();resid=np.asarray(fit.resid)
+                    bread=np.linalg.inv(xx.T@(w[:,None]*xx))
+                    if cov_type=='nonrobust':covariance=bread*float(np.sum(w*resid**2))/residual_df
+                    elif cov_type=='HC1':covariance=bread@(xx.T@((w*resid**2)[:,None]*xx))@bread*observation_count/residual_df
+                    else:
+                        scores=pd.DataFrame(xx*(w*resid)[:,None]).groupby(np.asarray(cov_kw['groups']),sort=False).sum().to_numpy()
+                        clusters=len(scores)
+                        if clusters<2:raise StataError('at least two clusters required',459)
+                        covariance=bread@(scores.T@scores)@bread*clusters/(clusters-1)*(observation_count-1)/residual_df
+                    fit._results.cov_params_default=covariance
+                    fit._results.df_resid=residual_df
             else:
                 if command in {"logit","logistic","probit"} and not y.isin([0,1]).all():raise StataError("binary outcome must contain only 0/1",459)
                 if command=="poisson" and ((y<0).any() or (y!=np.floor(y)).any()):raise StataError("nonnegative count outcome required",459)
@@ -63,16 +89,22 @@ class StatisticalCommands:
                 fit=model.fit(**fit_options)
                 if not fit.mle_retvals.get("converged",False):raise StataError("model failed to converge",430)
             self._fit=fit;self._model_columns=regressors;self._model_constant="noconstant" not in opt
+            self._fit_design=design
             self._sample_mask=valid
+            self._fit_residuals=pd.Series(np.nan,index=self.data.index)
+            self._fit_residuals.loc[valid]=np.asarray(fit.resid if command=='regress' else y-fit.predict(x))
             self.coefficients={n:(float(fit.params[n]),float(fit.bse[n])) for n in x.columns}
+            self.coefficients.update({n:(0.,0.) for n in omitted})
+            self.coefficients.update({n:(0.,0.) for n in design.omitted})
             self.matrices["e(b)"]=fit.params.to_numpy()[None,:];self.matrices["e(V)"]=fit.cov_params().to_numpy()
-            self.estimates={"N":int(fit.nobs),"df_r":float(getattr(fit,"df_resid_inference",fit.df_resid) if cov_type=="cluster" else fit.df_resid),"df_m":float(fit.df_model),"ll":float(fit.llf),
+            self.estimates={"N":observation_count,"df_r":float(getattr(fit,"df_resid_inference",residual_df) if cov_type=="cluster" else residual_df),"df_m":float(fit.df_model),"ll":float(fit.llf),
                             "cmd":"logit" if command=="logistic" else command,"depvar":dependent[0],"rank":len(x.columns)}
             if command=="regress":
-                self.estimates.update({"r2":float(fit.rsquared),"r2_a":float(fit.rsquared_adj),"rmse":float(np.sqrt(fit.mse_resid)),
-                                       "rss":float(fit.ssr),"mss":float(fit.ess),"F":float(fit.fvalue) if fit.fvalue is not None else np.nan})
+                rss=float(fit.ssr)*(len(y)/weights.loc[valid].sum() if weight_kind in {'aw','pw'} else 1.)
+                self.estimates.update({"r2":float(fit.rsquared),"r2_a":1-(1-float(fit.rsquared))*(observation_count-1)/residual_df,"rmse":float(np.sqrt(rss/residual_df)),
+                                       "rss":rss,"mss":float(fit.ess)*(len(y)/weights.loc[valid].sum() if weight_kind in {'aw','pw'} else 1.),"F":float(fit.fvalue) if fit.fvalue is not None else np.nan})
             else:self.estimates["r2_p"]=float(fit.prsquared)
-            self.emit(f"{command}: {dependent[0]}    Number of obs = {len(sample)}")
+            self.emit(f"{command}: {dependent[0]}    Number of obs = {observation_count}")
             exponentiate=command=="logistic" or "or" in opt or "irr" in opt
             self.emit("Variable              "+("Odds ratio" if exponentiate and command in {"logit","logistic"} else "IRR" if exponentiate else "Coefficient")+"      Std. err.")
             for name,(coef,se) in self.coefficients.items():
@@ -85,14 +117,18 @@ class StatisticalCommands:
             if len(opt)>1:raise StataError("predict options mutually exclusive")
             name,mask=self.qualifiers(parts[0]);name=re.sub(r'^(?:double|float)\s+',"",name)
             self._new_name(name)
-            x=self.data[self._model_columns].astype(float).copy()
+            if getattr(self,'_fit_design',None) is not None:
+                x=build_design(self,self._fit_design.specification,training=self._fit_design).frame.reindex(columns=self._model_columns,fill_value=0).astype(float)
+            else:x=self.data[self._model_columns].astype(float).copy()
             if self._model_constant:x["_cons"]=1.
             valid=mask & x.notna().all(axis=1)
             if "xb" in opt:values=x.loc[valid].to_numpy()@np.asarray(self._fit.params)
             else:values=self._fit.predict(x.loc[valid])
             if "residuals" in opt:
-                if self.estimates["cmd"]!="regress":raise StataError("residuals only implemented after regress",199)
-                values=self.data.loc[valid,self.estimates["depvar"]]-values
+                if self.estimates["cmd"] in {'areg','xtreg','reghdfe'}:
+                    values=self._fit_residuals.loc[valid]
+                elif self.estimates["cmd"] in {'regress','ivregress','ivreg2'}:values=self.data.loc[valid,self.estimates["depvar"]]-values
+                else:raise StataError("residuals after this estimator are not implemented",199)
             self.data[name]=np.nan;self.data.loc[valid,name]=values
             return
         if command=="test":
@@ -111,10 +147,10 @@ class StatisticalCommands:
             action=words[0]
             if action=="store" and len(words)==2:
                 if self._fit is None:raise StataError("last estimates not found",301)
-                self.stored_estimates[words[1]]=copy.deepcopy((self._fit,self._model_columns,self._model_constant,self.estimates,self.coefficients,self._sample_mask,self.matrices["e(b)"],self.matrices["e(V)"]));return
+                self.stored_estimates[words[1]]=copy.deepcopy((self._fit,self._model_columns,self._model_constant,self.estimates,self.coefficients,self._sample_mask,self.matrices["e(b)"],self.matrices["e(V)"],getattr(self,'_fit_design',None),getattr(self,'_fit_residuals',None)));return
             if action=="restore" and len(words)==2:
                 if words[1] not in self.stored_estimates:raise StataError("estimates not found",111)
-                self._fit,self._model_columns,self._model_constant,self.estimates,self.coefficients,self._sample_mask,b,v=copy.deepcopy(self.stored_estimates[words[1]])
+                self._fit,self._model_columns,self._model_constant,self.estimates,self.coefficients,self._sample_mask,b,v,self._fit_design,self._fit_residuals=copy.deepcopy(self.stored_estimates[words[1]])
                 self.matrices["e(b)"]=b;self.matrices["e(V)"]=v;return
             if action in {"dir","list"} and len(words)==1:self.emit("\n".join(self.stored_estimates));return
             if action=="clear" and len(words)==1:self.stored_estimates.clear();return

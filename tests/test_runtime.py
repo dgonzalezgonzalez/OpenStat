@@ -86,10 +86,10 @@ def test_extended_missing_dta_is_rejected_without_overwriting(tmp_path):
     assert list(e.data.original)==[1,2]
 
 
-def test_unknown_options_and_factor_variables_fail_explicitly(tmp_path):
+def test_unknown_options_fail_explicitly(tmp_path):
     e=Engine(tmp_path)
     e.run('set obs 4\ngen x = _n\ngen y = x*x')
-    assert e.run('regress y i.x').rc==199
+    assert e.run('regress y x, imaginaryoption').rc==198
     assert e.run('scatter y x, nonsense').rc==198
 
 

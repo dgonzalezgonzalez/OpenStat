@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "scope": "Synthetic numerical cases; no arbitrary-script equivalence claim",
+  "cases": {
+    "factors_weights": {
+      "status": "completed",
+      "rc": 0,
+      "seconds": 3.293,
+      "scalars": {
+        "factor_x": 2.0151514730485,
+        "factor_g1": 3.0058274409479,
+        "factor_int": 0.48251753171501,
+        "factor_se": 0.059972697297253,
+        "factor_df": 30.0,
+        "aw_b": 2.2391376189012,
+        "aw_se": 0.40909135732806,
+        "aw_rss": 220.22033555208,
+        "fw_b": 2.2391376189012,
+        "fw_se": 0.25428364427834,
+        "fw_n": 90.0,
+        "fw_df": 88.0,
+        "fw_robust": 0.25335908726834,
+        "pw_b": 2.2391376189012,
+        "pw_se": 0.44618562303898
+      },
+      "version": "19.5",
+      "sha256": "ef2a7b3ef3ed5f087a640eafe9f9943a5d55e85805e516d98012d7340574807e"
+    },
+    "panel": {
+      "status": "completed",
+      "rc": 0,
+      "seconds": 2.6794,
+      "scalars": {
+        "lag": 1.2000000476837,
+        "gap_missing": 1.0,
+        "areg_b": 1.9611111456802,
+        "areg_cons": 3.4029164974532,
+        "areg_se": 0.044696665881085,
+        "areg_secons": 0.21882258704673,
+        "areg_df": 27.0,
+        "areg_r2": 0.99905762359831,
+        "areg_cluster": 0.028847705286645,
+        "areg_clusterdf": 7.0,
+        "xtreg_b": 1.9611111456802,
+        "xtreg_se": 0.044696665881085,
+        "xtreg_df": 27.0,
+        "xtreg_r2w": 0.98671715424802,
+        "xtreg_cluster": 0.025707136059078,
+        "xtreg_clusterdf": 7.0
+      },
+      "version": "19.5",
+      "sha256": "56c7150e170fb3eb31b0e8d6d87558b6977b6d7a0f17f7a97c24cc4de508cc44"
+    },
+    "instrumental": {
+      "status": "completed",
+      "rc": 0,
+      "seconds": 2.7782,
+      "scalars": {
+        "iv_b": 1.9981415211076,
+        "iv_x": 0.49927500193959,
+        "iv_cons": 1.3095835745487,
+        "iv_se": 0.022714775369475,
+        "iv_rmse": 0.223585579367,
+        "iv_robust": 0.023278484982435,
+        "iv_cluster": 0.020038405444953,
+        "iv_clusterdf": 5.0
+      },
+      "version": "19.5",
+      "sha256": "3f157a340cc17a6eb5563cdfd530cc997f08d27be3fec3e33250fead754fadc3"
+    }
+  }
+}

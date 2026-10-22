@@ -9,7 +9,7 @@ description = "Independent, experimental statistical workbench with a Stata-styl
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
-dependencies = ["numpy>=1.26,<3", "pandas>=2.2,<4", "scipy>=1.12,<2", "statsmodels>=0.14,<1", "matplotlib>=3.8,<4", "pyreadstat>=1.2,<2", "openpyxl>=3.1,<4"]
+dependencies = ["numpy>=1.26,<3", "pandas>=2.2,<4", "scipy>=1.12,<2", "statsmodels>=0.14,<1", "matplotlib>=3.8,<4", "pyreadstat>=1.2,<2", "openpyxl>=3.1,<4", "regex>=2024.11"]
 
 [project.optional-dependencies]
 desktop = ["PySide6-Essentials>=6.7,<7"]
