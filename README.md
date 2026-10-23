@@ -71,9 +71,12 @@ python qa/gap_report.py            # roll every suite into one ranked queue
 ```
 
 Current measured state: **252 passed, 4 skipped** in `pytest -q`, **10/10**
-conformance cases, and **20 of 21** differential cases (the SSC download case is
-opt-in). `qa/gap_report.py` writes `qa/gap-report.md`. The desktop gap list is
-[measured separately](docs/ui-parity.md).
+conformance cases, **20 of 21** differential cases (the SSC download case is
+opt-in), and **2/2** published replication packages on this host. Replication
+also records wall time, and OpenStat is much slower than Stata on
+`dropout_jpe_descriptives` (about 145 s against 1.6 s) — that is a recorded
+performance gap, not a correctness claim. `qa/gap_report.py` writes
+`qa/gap-report.md`. The desktop gap list is [measured separately](docs/ui-parity.md).
 
 The conformance harness runs the same `qa/conformance/cNN_*.do` in Stata and
 in OpenStat, each in its own temporary directory, and compares the sentinel

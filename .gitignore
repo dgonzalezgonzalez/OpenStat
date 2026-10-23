@@ -15,6 +15,10 @@ qa/latest-report.json
 qa/online-report.json
 # Generated desktop inventory (9 MB, rebuilt by `qa/ui_manifest.py --build`).
 qa/ui_manifest.json
+# Generated gap queue (`qa/gap_report.py`); the timestamps make it a build
+# artifact rather than a source file.
+qa/gap-report.json
+qa/gap-report.md
 openstat-output/
 qa/replication/_packages/
 qa/replication/_artifacts/

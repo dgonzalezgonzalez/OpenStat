@@ -74,16 +74,22 @@ unknowns. OpenStat runs independently of the oracle; Stata is used only by the
 optional QA harness.
 
 Differential coverage at the time of writing (23 October 2026, measured on this
-host): **10/10** `qa/conformance` cases pass against Stata 19.5
+Windows host): **10/10** `qa/conformance` cases pass against Stata 19.5
 (`qa/conformance_run.py --all`), **20 of 21** checked-in differential cases pass
 (`qa/run_differential.py`; the 21st is the optional SSC download, skipped when
 no local package copy is supplied), **2/2** published replication packages pass
-(`qa/replication_run.py`), and `pytest -q` reports **252 passed, 4 skipped,
-90 subtests passed**. The `%w.dg` display model matches Stata on a
-385 815-measurement corpus and 7 160 targeted probes; the RNG matches
-draw-for-draw; `describe` matches byte-for-byte. These are the *measured*
-claims this repository makes — anything not covered by one of those harnesses
-is unverified and should be described as such.
+(`qa/replication_run.py`: `bdmmm_jpe_randomdata` and
+`dropout_jpe_descriptives`, both AEA/JPE), and `pytest -q` reports **252
+passed, 4 skipped, 90 subtests passed**. The `%w.dg` display model matches
+Stata on a 385 815-measurement corpus and 7 160 targeted probes; the RNG
+matches draw-for-draw; `describe` matches byte-for-byte. These are the
+*measured* claims this repository makes — anything not covered by one of those
+harnesses is unverified and should be described as such.
+
+Replication also exposes a **performance** gap that is not a correctness gap:
+`dropout_jpe_descriptives` takes 1.6 s in Stata and about 145 s in OpenStat.
+The harness records both times, and a slow case is never reported as a pass on
+the strength of its return code alone.
 
 `qa/gap_report.py` rolls the three suites into one ranked queue
 (`qa/gap-report.md`, `qa/gap-report.json`). It compares each suite against the
