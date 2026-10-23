@@ -31,15 +31,15 @@ Batch runs use the current directory unless `--cwd DIRECTORY` is supplied. A scr
 ## What works
 
 - Native desktop: Results, command entry/history, do-file syntax highlighting, line numbers, find, open/save, run selection, variables/properties, editable Data Browser, graph previews, and keyboard shortcuts. Background execution is serialized; Stop interrupts at statement boundaries.
-- A bounded do-file language: comments, continuations, delimiters, local/global macros, simple loops, programs with positional `args`, stored `r()`/`e()` results, `capture`, `quietly`, `if`/`in`, variable wildcards and ranges.
-- Data generation, filtering, sorting, grouped calculations, summaries, CSV/Excel import/export, append, validated merges, numeric long/wide reshape, collapse, preserve/restore, labels, encode/decode, and strict numeric/string conversions.
+- A bounded do-file language: comments, continuations, delimiters, compound quotes, local/global macros with extended expansion, `forvalues`/`foreach`/`while`/`if`/`else` with `continue`/`break`/`exit`, programs with positional `args`, `syntax`, `marksample`/`mark`/`markout`, `tempvar`/`tempname`/`tempfile`, stored `r()`/`e()` results, `capture`, `quietly`, `noisily`, `if`/`in`, variable wildcards and ranges, and factor-variable specifications (`i.`, `c.`, `##`).
+- Data generation, filtering, sorting, grouped calculations, summaries, CSV/Excel import/export, append, validated merges, numeric long/wide reshape, collapse, preserve/restore, labels, encode/decode, duplicates, and strict numeric/string conversions.
 - **Stata's numeric display formats.** `%w.dg`, `%w.df`, `%w.de` and `%w.dgc` reproduce Stata 19.5 byte-for-byte on a 385 815-measurement corpus plus 7 160 targeted probes, and `describe` reproduces Stata's layout byte-for-byte. The model is documented in [docs/formats.md](docs/formats.md).
 - **Stata's storage types.** `byte`, `int`, `long`, `float` and `double` keep Stata's ranges, Stata's default display format per type, and Stata's rule that an out-of-range integer becomes *missing* rather than clamped. `generate` creates a `float` variable unless a type is named, exactly as Stata does.
 - **Stata's `r()`, `e()` and `c()`.** The expansion in macro position, the rendering in expression position, and the behaviour of an unknown name all follow Stata 19.5.
 - **Stata's random numbers.** The generator is Stata's MT64 variant with the ziggurat normal, verified draw-for-draw against Stata 19.5. See [docs/random-numbers.md](docs/random-numbers.md).
 - Reading supported DTA variants through ReadStat; writing 114/117/118/119 through pandas. The live conformance suite tests **DTA118 numeric/string data and labels**, not every DTA feature. Extended missing values are rejected when loading instead of silently collapsed.
-- OLS, HC1/cluster covariance, binary logit/probit, Poisson, predictions, basic hypothesis/mean tests, and matrix arithmetic through maintained numerical libraries. OLS, robust/clustered covariance and stored logistic results have bounded Stata comparisons; other models need broader validation.
-- A small interpreted Mata subset: real numeric matrices, assignment, transpose, matrix multiplication, selected algebra functions, `st_matrix()` and `st_numscalar()`; no compiled Mata, functions, classes, pointers, views, or `.mlib` execution.
+- OLS, HDFE (`reghdfe`-style absorbed effects with `e(df_a)` semantics), `areg`/`xtreg`, 2SLS, binary logit/probit, Poisson, predictions, weights, HC1/cluster covariance, basic hypothesis/mean tests, `esttab`/`estout` tables, and matrix arithmetic through maintained numerical libraries. OLS, robust/clustered covariance, HDFE, 2SLS and stored logistic results have bounded Stata comparisons; other models need broader validation.
+- A small interpreted Mata subset: real numeric matrices, assignment, transpose, matrix multiplication, loops and user functions, selected algebra functions, `st_matrix()` and `st_numscalar()`; no compiled Mata, classes, pointers, views, or `.mlib` execution.
 - SSC and `net install` descriptor/file downloads, isolated package directory, manifests with hashes, and autoloading of compatible ado programs. Downloading a package does **not** prove it can execute. Most substantial community packages need syntax and primitives that are still missing.
 
 ## Quick example
@@ -67,7 +67,13 @@ python -m pytest -q
 # differential against an installed Stata 19.5
 python qa/conformance_run.py --all --diff
 python qa/replication_run.py --list
+python qa/gap_report.py            # roll every suite into one ranked queue
 ```
+
+Current measured state: **252 passed, 4 skipped** in `pytest -q`, **10/10**
+conformance cases, and **20 of 21** differential cases (the SSC download case is
+opt-in). `qa/gap_report.py` writes `qa/gap-report.md`. The desktop gap list is
+[measured separately](docs/ui-parity.md).
 
 The conformance harness runs the same `qa/conformance/cNN_*.do` in Stata and
 in OpenStat, each in its own temporary directory, and compares the sentinel
@@ -90,11 +96,12 @@ tolerances, timings, return codes, and reference version.
 [Stored reference values](qa/stata_reference.json) allow tests without
 Stata.
 
-**Reference boundary:** the installed oracle is **StataNow/SE 19.5** on
-macOS (`/Applications/StataNow`); older shipped help/resources describe an
-earlier snapshot. The official update page listed revision **14 October
-2026** at inspection; that revision was not installed or tested. REA
-provided static evidence from the shipped binary — the display-format
+**Reference boundary:** the installed oracle is **StataNow/SE 19.5**
+(`/Applications/StataNow` on macOS, `C:\Program Files\StataNow19` on the
+Windows host used for the current measurements); older shipped help/resources
+describe an earlier snapshot. The official update page listed revision
+**14 October 2026** at inspection; that revision was not installed or tested.
+REA provided static evidence from the shipped binary — the display-format
 model, the macro-expansion format, the RNG constants and the storage-type
 defaults — recorded in the [inspection record](docs/inspection.md). No
 exhaustive understanding or latest-version equivalence is claimed.
