@@ -1,0 +1,1796 @@
+{
+ "schema_version": 1,
+ "generator": "qa/stata_primitives.py",
+ "source_version": "StataNow 19.5",
+ "measured": "2026-10-22",
+ "source_root": "C:\\Program Files\\StataNow19\\ado\\base",
+ "notes": [
+  "Interface facts only: primitive names, grammar shapes, option and keyword names, and the observed behaviour of Stata 19.5. No StataCorp prose, tables or examples are copied.",
+  "sources entries are 'sthlp:<path under source_root>' for a help file and 'targets:<subject>' for a subject key in qa/stata_targets.json.",
+  "openstat_status is derived by reading openstat/*.py and, where cheap, by running a probe through Engine. 'partial' means the primitive exists but a documented case diverges; the divergence is named in openstat_note."
+ ],
+ "areas": [
+  {
+   "id": 1,
+   "key": "qualifiers",
+   "title": "if / in qualifiers",
+   "summary": "Observation selection shared by every command that takes a varlist."
+  },
+  {
+   "id": 2,
+   "key": "by",
+   "title": "by / bysort",
+   "summary": "Repeat a command over groups of observations."
+  },
+  {
+   "id": 3,
+   "key": "weights",
+   "title": "Weights (aw / fw / pw / iw)",
+   "summary": "The bracketed weight specification and the four weight types."
+  },
+  {
+   "id": 4,
+   "key": "factor-variables",
+   "title": "Factor variables",
+   "summary": "Indicator, continuous, base-level and interaction terms."
+  },
+  {
+   "id": 5,
+   "key": "ts-operators",
+   "title": "Time-series operators",
+   "summary": "L. F. D. S. and the operator-numlist / repeated-operator forms."
+  },
+  {
+   "id": 6,
+   "key": "storage-types",
+   "title": "Storage types",
+   "summary": "byte / int / long / float / double / str# / strL and how they are set."
+  },
+  {
+   "id": 7,
+   "key": "formats",
+   "title": "Display formats",
+   "summary": "The %fmt grammar and the rendering rules behind it."
+  },
+  {
+   "id": 8,
+   "key": "results",
+   "title": "r() / e() / s() / c()",
+   "summary": "Stored-result classes and macro versus expression position."
+  },
+  {
+   "id": 9,
+   "key": "prefixes",
+   "title": "Command prefixes",
+   "summary": "capture, quietly, noisily, version, statsby, svy, mi, bayes."
+  },
+  {
+   "id": 10,
+   "key": "syntax",
+   "title": "syntax grammar",
+   "summary": "The syntax command and its element / option descriptors."
+  },
+  {
+   "id": 11,
+   "key": "program-support",
+   "title": "program / marksample / mark / markout",
+   "summary": "The commands programs use to define themselves and select observations."
+  },
+  {
+   "id": 12,
+   "key": "missing",
+   "title": "Extended missing values",
+   "summary": "The . and .a-.z missing namespace."
+  },
+  {
+   "id": 13,
+   "key": "mata",
+   "title": "Mata subset",
+   "summary": "The Stata interface functions and the matrix constructors."
+  },
+  {
+   "id": 14,
+   "key": "errors",
+   "title": "Error codes",
+   "summary": "The r(###) contract and the fail-explicitly rule."
+  },
+  {
+   "id": 15,
+   "key": "command-groups",
+   "title": "Command groups",
+   "summary": "Data, estimation, postestimation, graphics and programming commands."
+  }
+ ],
+ "primitives": [
+  {
+   "name": "if_qualifier",
+   "area": "qualifiers",
+   "kind": "qualifier",
+   "summary": "Runs the command on the observations for which exp is true; exp is evaluated on the whole dataset first, then intersected with any in range.",
+   "grammar": "[varlist] if exp",
+   "examples": [
+    "summarize y if g == 1",
+    "regress y z if g == 1 & y > 2"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/engine.py Engine.qualifiers() splits the argument list on a top-level ' if ' outside quotes and parentheses; the mask is combined with &=. Engine._keep_drop() and Engine._describe() are the main call sites.",
+   "sources": [
+    "sthlp:i/if.sthlp",
+    "sthlp:i/in.sthlp",
+    "targets:if",
+    "targets:in"
+   ]
+  },
+  {
+   "name": "in_qualifier",
+   "area": "qualifiers",
+   "kind": "qualifier",
+   "summary": "Restricts a command to an observation-number range. f means the first observation, l the last, negative numbers count back from the end.",
+   "grammar": "[varlist] in range  (range = # | #/# | #/l | f/#)",
+   "examples": [
+    "count in 2/4",
+    "list y in -3/l"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/engine.py Engine.qualifiers() accepts (-?\\d+|f|l)(/(-?\\d+|f|l))?. GAP: observation 0 is accepted and yields an empty selection; Stata 19.5 rejects 'in 0/2' with rc 198 \"'0' invalid observation number\".",
+   "sources": [
+    "sthlp:i/if.sthlp",
+    "sthlp:i/in.sthlp",
+    "targets:if",
+    "targets:in"
+   ]
+  },
+  {
+   "name": "if_in_combination",
+   "area": "qualifiers",
+   "kind": "qualifier",
+   "summary": "A command may carry both qualifiers; the effective sample is the intersection of the two selections, and if is evaluated over all observations.",
+   "grammar": "cmd [varlist] if exp in range",
+   "examples": [
+    "summarize y if g == 1 in 1/4"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/engine.py Engine.qualifiers(): every qualifier found at top level is ANDed into one boolean mask before the command body runs.",
+   "sources": [
+    "sthlp:i/if.sthlp",
+    "sthlp:i/in.sthlp",
+    "targets:if",
+    "targets:in"
+   ]
+  },
+  {
+   "name": "by_prefix",
+   "area": "by",
+   "kind": "qualifier",
+   "summary": "Runs the command once per group of the varlist. Data must already be sorted by the varlist (rc 5 otherwise) unless bysort or the sort option is used.",
+   "grammar": "by varlist: command",
+   "examples": [
+    "bysort g: summarize y",
+    "by g: count"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/engine.py Engine._by() accepts only {egen, generate, replace, summarize, count, assert, tabulate, list, total, mean} as the body. GAP: 'by g: regress y z' is rc 199 here, rc 0 in Stata, and no block form ('by g: { ... }') is recognised.",
+   "sources": [
+    "sthlp:b/by.sthlp",
+    "targets:by"
+   ]
+  },
+  {
+   "name": "bysort_prefix",
+   "area": "by",
+   "kind": "qualifier",
+   "summary": "Sorts the data by the varlist and then runs the command once per group; the sort is stable and happens before the first group runs.",
+   "grammar": "bysort varlist: command",
+   "examples": [
+    "bysort g: generate n = _n"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/engine.py Engine._by(sort=True): sorts with sort_values(..., kind='stable', na_position='last') and concatenates the per-group results. Same body-command allow-list as by_prefix.",
+   "sources": [
+    "sthlp:b/by.sthlp",
+    "targets:by"
+   ]
+  },
+  {
+   "name": "by_sort_override",
+   "area": "by",
+   "kind": "qualifier",
+   "summary": "The parenthesised second varlist selects the order the groups are processed in without changing the grouping.",
+   "grammar": "by varlist1 [(varlist2)]: command",
+   "examples": [
+    "bysort g (z): count"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/engine.py Engine._by() sorts by varlist1 + varlist2 together rather than by varlist2 inside each group; the observed output matches a full sort for the probed cases but the two orderings differ when varlist1 and varlist2 conflict. Would be settled by a conformance case with two group variables and a sort variable.",
+   "sources": [
+    "sthlp:b/by.sthlp",
+    "targets:by"
+   ]
+  },
+  {
+   "name": "by_unsorted_error",
+   "area": "by",
+   "kind": "qualifier",
+   "summary": "A plain by on data that is not sorted by the varlist fails with rc 5 instead of sorting silently.",
+   "grammar": "by varlist: command   (unsorted data)",
+   "examples": [
+    "sort -g",
+    "by g: count"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/engine.py Engine._by(): compares the sort keys before and after sorting and raises StataError('not sorted', 5).",
+   "sources": [
+    "sthlp:b/by.sthlp",
+    "targets:by"
+   ]
+  },
+  {
+   "name": "weight_bracket",
+   "area": "weights",
+   "kind": "weight",
+   "summary": "A bracketed weight specification that follows the varlist and precedes the comma: [aw=w], [fw=w], [pw=w], [iw=w].",
+   "grammar": "[weighttype=exp]",
+   "examples": [
+    "regress y z [aw=w]",
+    "summarize y [fw=w]"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/design.py parse_weight() strips the bracket from the model specification and returns (text, kind, expression); used by statistics.py, panel.py and instrumental.py. GAP: it is not a general command-level parser, so in descriptive commands 'summarize y [fw=w]' the bracket is read as a varlist and w is summarized as a second variable.",
+   "sources": [
+    "sthlp:w/weight.sthlp",
+    "targets:weight"
+   ]
+  },
+  {
+   "name": "weight_aweight",
+   "area": "weights",
+   "kind": "weight",
+   "summary": "Analytic weights scale the contribution of each observation; the variance formula treats them as inverse-variance information.",
+   "grammar": "cmd ... [aw=exp]",
+   "examples": [
+    "regress y z [aw=w]"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py parse_weight() -> 'aw'; statistics.py applies the weight in the estimator. Applied (weighted SEs differ from the unweighted fit) but the weighted point estimates have not been compared with Stata numerically.",
+   "sources": [
+    "sthlp:w/weight.sthlp",
+    "targets:weight"
+   ]
+  },
+  {
+   "name": "weight_fweight",
+   "area": "weights",
+   "kind": "weight",
+   "summary": "Frequency weights state how many observations each row stands for; N becomes the sum of the weights.",
+   "grammar": "cmd ... [fw=exp]",
+   "examples": [
+    "regress y z [fw=w]",
+    "summarize y [fw=w]"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py parse_weight() -> 'fw'. In estimation the weight is applied; in 'summarize' r(N) stays the row count (Stata reports the weight sum: measured 12 vs 6 on the same data).",
+   "sources": [
+    "sthlp:w/weight.sthlp",
+    "targets:weight"
+   ]
+  },
+  {
+   "name": "weight_pweight",
+   "area": "weights",
+   "kind": "weight",
+   "summary": "Sampling weights describe the inverse probability of selection; the variance is computed from the weighted estimator, not from the weight sums.",
+   "grammar": "cmd ... [pw=exp]",
+   "examples": [
+    "regress y z [pw=w]"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py parse_weight() -> 'pw'; statistics.py applies it. The weighted SE differs from aweight, as in Stata, but no numeric comparison against Stata has been recorded.",
+   "sources": [
+    "sthlp:w/weight.sthlp",
+    "targets:weight"
+   ]
+  },
+  {
+   "name": "weight_iweight",
+   "area": "weights",
+   "kind": "weight",
+   "summary": "Importance weights are accepted only by a few commands and are refused elsewhere with an explicit error.",
+   "grammar": "cmd ... [iw=exp]",
+   "examples": [
+    "regress y z [iw=w]"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "openstat/design.py parse_weight() recognises 'iw' but the estimator raises StataError('importance weights not yet implemented', 199); measured on 'regress y z [iw=w]'.",
+   "sources": [
+    "sthlp:w/weight.sthlp",
+    "targets:weight"
+   ]
+  },
+  {
+   "name": "fv_i",
+   "area": "factor-variables",
+   "kind": "operator",
+   "summary": "Expands a categorical variable into one indicator per level, omitting the base level; the omitted level is reported with a b coefficient of 0.",
+   "grammar": "i.varname",
+   "examples": [
+    "regress y i.g",
+    "tabulate g"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/design.py build_design()/atom() when prefix == 'i'. Works in the estimation commands that call build_design (regress, logit, ivregress, xtreg, ...), not in descriptive or data commands: 'summarize i.g' is rc 111 here and rc 0 in Stata.",
+   "sources": [
+    "sthlp:f/fvvarlist.sthlp",
+    "targets:fvvarlist"
+   ]
+  },
+  {
+   "name": "fv_c",
+   "area": "factor-variables",
+   "kind": "operator",
+   "summary": "Treats a variable as continuous inside a factor specification, which matters only when it is combined with ## or #.",
+   "grammar": "c.varname",
+   "examples": [
+    "regress y c.y#c.z"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py atom(): prefix 'c' returns the raw values; inside an interaction the column is named 'c.name'.",
+   "sources": [
+    "sthlp:f/fvvarlist.sthlp",
+    "targets:fvvarlist"
+   ]
+  },
+  {
+   "name": "fv_ib_base",
+   "area": "factor-variables",
+   "kind": "operator",
+   "summary": "Chooses the base (omitted) level: a specific value, the smallest value (default), or the largest value.",
+   "grammar": "ib#.var | b#.var | ib(first).var | ib(last).var",
+   "examples": [
+    "regress y ib2.g",
+    "regress y ib(last).g"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py atom(): prefix ib<digits>, 'b<digits>', 'ib(first)' and 'ib(last)' select the base and record omitted['<base>b.<name>'] = 0.",
+   "sources": [
+    "sthlp:f/fvvarlist.sthlp",
+    "targets:fvvarlist"
+   ]
+  },
+  {
+   "name": "fv_ibn",
+   "area": "factor-variables",
+   "kind": "operator",
+   "summary": "Includes an indicator for every level, leaving no base level and dropping the constant implicitly.",
+   "grammar": "ibn.varname",
+   "examples": [
+    "regress y ibn.g"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py atom(): prefix 'ibn' sets selected = all levels and base = None.",
+   "sources": [
+    "sthlp:f/fvvarlist.sthlp",
+    "targets:fvvarlist"
+   ]
+  },
+  {
+   "name": "fv_ib_freq",
+   "area": "factor-variables",
+   "kind": "operator",
+   "summary": "Uses the most frequent level as the base.",
+   "grammar": "ib(freq).varname",
+   "examples": [
+    "regress y ib(freq).g"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "openstat/design.py atom() has no 'ib(freq)' branch; 'regress y ib(freq).g' falls through to the varlist lookup and fails with rc 111 'variable ib(freq).g not found'. Stata runs it with rc 0.",
+   "sources": [
+    "sthlp:f/fvvarlist.sthlp",
+    "targets:fvvarlist"
+   ]
+  },
+  {
+   "name": "fv_o",
+   "area": "factor-variables",
+   "kind": "operator",
+   "summary": "Selects the levels to omit; the o. operator implies i. for the levels that are kept.",
+   "grammar": "o.varname | o(numlist).varname",
+   "examples": [
+    "regress y o2.g"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "openstat/design.py atom() has no 'o' branch; 'regress y o2.g' is rc 111 here, rc 0 in Stata.",
+   "sources": [
+    "sthlp:f/fvvarlist.sthlp",
+    "targets:fvvarlist"
+   ]
+  },
+  {
+   "name": "fv_hash",
+   "area": "factor-variables",
+   "kind": "operator",
+   "summary": "Builds the interaction of the listed terms only; each factor contributes its indicators and the product is one column per cell.",
+   "grammar": "term1#term2[#term3...]",
+   "examples": [
+    "regress y i.g#c.z",
+    "regress y c.y#c.z"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py build_design() add(): splits on '#' and multiplies the per-term columns; interaction columns are named 'a#b'. Up to eight-way interactions are accepted.",
+   "sources": [
+    "sthlp:f/fvvarlist.sthlp",
+    "targets:fvvarlist"
+   ]
+  },
+  {
+   "name": "fv_doublehash",
+   "area": "factor-variables",
+   "kind": "operator",
+   "summary": "Expands to every main effect and interaction implied by the terms: a##b means a, b and a#b.",
+   "grammar": "term1##term2",
+   "examples": [
+    "regress y i.g##c.z"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py build_design(): '##' is expanded over combinations() of the factors, then each subset is added as a # interaction.",
+   "sources": [
+    "sthlp:f/fvvarlist.sthlp",
+    "targets:fvvarlist"
+   ]
+  },
+  {
+   "name": "fv_numlist",
+   "area": "factor-variables",
+   "kind": "operator",
+   "summary": "Selects a list or range of levels to include, or the nth ordered value as the base.",
+   "grammar": "i(numlist).var | ib(#n).var",
+   "examples": [
+    "regress y i(1/2).g",
+    "regress y ib(#2).g"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "openstat/design.py atom() regex (i|c|ibn|ib(\\d+|\\(first\\)|\\(last\\))|b\\d+|\\d+)\\. does not match 'i(1/2).' or 'ib(#2).'; both are rc 111 here and rc 0 in Stata.",
+   "sources": [
+    "sthlp:f/fvvarlist.sthlp",
+    "targets:fvvarlist"
+   ]
+  },
+  {
+   "name": "fv_omitted_coefficient",
+   "area": "factor-variables",
+   "kind": "operator",
+   "summary": "The base level appears in the coefficient vector as a zero so that _b[1b.g] resolves.",
+   "grammar": "i.var  ->  e(b) contains <level>b.<name> = 0",
+   "examples": [
+    "regress y i.g",
+    "display _b[1b.g]"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py atom(): values are put in the Design.omitted dict; the coefficient vector built by statistics.py carries the base entries.",
+   "sources": [
+    "sthlp:f/fvvarlist.sthlp",
+    "targets:fvvarlist"
+   ]
+  },
+  {
+   "name": "ts_L",
+   "area": "ts-operators",
+   "kind": "operator",
+   "summary": "Lag: the value of the variable # periods earlier. L. equals L1. and L0. is the variable itself; a missing period yields a missing value.",
+   "grammar": "L.var | L#.var | L0.var",
+   "examples": [
+    "tsset t",
+    "generate lag = L.y"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py time_series(): kind 'L' shifts the time key by +count and merges back on (panel, time), so gaps stay missing.",
+   "sources": [
+    "sthlp:t/tsvarlist.sthlp",
+    "targets:tsvarlist"
+   ]
+  },
+  {
+   "name": "ts_F",
+   "area": "ts-operators",
+   "kind": "operator",
+   "summary": "Lead: the value # periods later, the complement of L.",
+   "grammar": "F.var | F#.var",
+   "examples": [
+    "generate lead = F.y"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py time_series(): kind 'F' shifts the time key by -count.",
+   "sources": [
+    "sthlp:t/tsvarlist.sthlp",
+    "targets:tsvarlist"
+   ]
+  },
+  {
+   "name": "ts_D",
+   "area": "ts-operators",
+   "kind": "operator",
+   "summary": "Difference: var_t - var_(t-#); D1. equals S1.",
+   "grammar": "D.var | D#.var",
+   "examples": [
+    "generate d = D.y"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py time_series(): kind 'D' applies the one-period difference count times.",
+   "sources": [
+    "sthlp:t/tsvarlist.sthlp",
+    "targets:tsvarlist"
+   ]
+  },
+  {
+   "name": "ts_S",
+   "area": "ts-operators",
+   "kind": "operator",
+   "summary": "Seasonal difference: var_t - var_(t-#). S1 equals D1, S2 is not D2.",
+   "grammar": "S.var | S#.var",
+   "examples": [
+    "generate s2 = S2.y"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/design.py time_series(): kind 'S' re-applies the one-period difference count times, so it computes D# instead of the offset difference. Measured: S2.y on y = 2*_n is 4 in Stata (y5 - y3) and 0 here.",
+   "sources": [
+    "sthlp:t/tsvarlist.sthlp",
+    "targets:tsvarlist"
+   ]
+  },
+  {
+   "name": "ts_numlist",
+   "area": "ts-operators",
+   "kind": "operator",
+   "summary": "An operator followed by a numlist means the set of operated variables: L(1/3).x is L.x L2.x L3.x.",
+   "grammar": "L(numlist).var | D(1/2).var",
+   "examples": [
+    "list y L(2).y in 1/3"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "openstat/design.py time_series() matches only operator#.var, so in a varlist 'list y L(2).y' is rc 111 'variable L(2).y not found' while Stata lists the lagged column; in an expression Stata itself rejects it with r(133) unknown function L().",
+   "sources": [
+    "sthlp:t/tsvarlist.sthlp",
+    "targets:tsvarlist"
+   ]
+  },
+  {
+   "name": "ts_repeat",
+   "area": "ts-operators",
+   "kind": "operator",
+   "summary": "Operators may be repeated and combined; Stata canonicalises the sequence into the equivalent single operator.",
+   "grammar": "LLL.var | L2L.var | ld2ls12d.var",
+   "examples": [
+    "list y LLL.y in 1/3"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "openstat/design.py time_series() takes one operator letter only; 'list y LLL.y' is rc 111 'variable LLL.y not found'.",
+   "sources": [
+    "sthlp:t/tsvarlist.sthlp",
+    "targets:tsvarlist"
+   ]
+  },
+  {
+   "name": "ts_requires_tsset",
+   "area": "ts-operators",
+   "kind": "operator",
+   "summary": "Any time-series operator needs a declared time variable; without one the command stops instead of guessing an ordering.",
+   "grammar": "L.var   (no time variable declared)",
+   "examples": [
+    "generate lag = L.y"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/design.py time_series(): raises StataError('time variable not set; use tsset or xtset', 111) when no time key is registered; tsset and xtset both register one (openstat/panel.py).",
+   "sources": [
+    "sthlp:t/tsvarlist.sthlp",
+    "sthlp:t/tsset.sthlp",
+    "targets:tsvarlist"
+   ]
+  },
+  {
+   "name": "type_byte",
+   "area": "storage-types",
+   "kind": "type",
+   "summary": "One-byte integer storage, range -127..100, default format %8.0g; an out-of-range value becomes missing rather than being clamped.",
+   "grammar": "generate byte name = exp",
+   "examples": [
+    "generate byte b = 1",
+    "describe b"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/generation.py _generate() uses storage.INTEGER_RANGE and storage.DEFAULT_FORMAT; measured 'generate byte b9 = 1e10' -> . and describe reports byte %8.0g.",
+   "sources": [
+    "sthlp:d/data_types.sthlp",
+    "sthlp:r/recast.sthlp",
+    "targets:Data types",
+    "targets:recast"
+   ]
+  },
+  {
+   "name": "type_int",
+   "area": "storage-types",
+   "kind": "type",
+   "summary": "Two-byte integer storage, range -32767..32740, default format %8.0g.",
+   "grammar": "generate int name = exp",
+   "examples": [
+    "generate int i2 = y"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/generation.py _generate() + openstat/storage.py INTEGER_RANGE; describe reports int %8.0g.",
+   "sources": [
+    "sthlp:d/data_types.sthlp",
+    "sthlp:r/recast.sthlp",
+    "targets:Data types",
+    "targets:recast"
+   ]
+  },
+  {
+   "name": "type_long",
+   "area": "storage-types",
+   "kind": "type",
+   "summary": "Four-byte integer storage, range -2147483647..2147483620, default format %12.0g.",
+   "grammar": "generate long name = exp",
+   "examples": [
+    "generate long l2 = y"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/generation.py _generate() + openstat/storage.py; describe reports long %12.0g.",
+   "sources": [
+    "sthlp:d/data_types.sthlp",
+    "sthlp:r/recast.sthlp",
+    "targets:Data types",
+    "targets:recast"
+   ]
+  },
+  {
+   "name": "type_float",
+   "area": "storage-types",
+   "kind": "type",
+   "summary": "Single-precision storage, default format %9.0g; this is what an untyped generate creates.",
+   "grammar": "generate float name = exp",
+   "examples": [
+    "generate q = 1",
+    "describe q"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/generation.py _generate(): storage defaults to openstat/storage.py DEFAULT_TYPE ('float') unless 'set type' changed it.",
+   "sources": [
+    "sthlp:d/data_types.sthlp",
+    "sthlp:r/recast.sthlp",
+    "targets:Data types",
+    "targets:recast"
+   ]
+  },
+  {
+   "name": "type_double",
+   "area": "storage-types",
+   "kind": "type",
+   "summary": "Double-precision storage, default format %10.0g.",
+   "grammar": "generate double name = exp",
+   "examples": [
+    "generate double d2 = y"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/generation.py _generate(); describe reports double %10.0g.",
+   "sources": [
+    "sthlp:d/data_types.sthlp",
+    "sthlp:r/recast.sthlp",
+    "targets:Data types",
+    "targets:recast"
+   ]
+  },
+  {
+   "name": "type_str",
+   "area": "storage-types",
+   "kind": "type",
+   "summary": "Fixed-width string storage; values longer than the declared width are truncated to it.",
+   "grammar": "generate str# name = exp  (2 <= # <= 2045)",
+   "examples": [
+    "generate str3 s = \"abc\""
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/generation.py _generate() matches 'str\\d*' and describe reports str3 %9s.",
+   "sources": [
+    "sthlp:d/data_types.sthlp",
+    "sthlp:r/recast.sthlp",
+    "targets:Data types",
+    "targets:recast"
+   ]
+  },
+  {
+   "name": "type_strL",
+   "area": "storage-types",
+   "kind": "type",
+   "summary": "Long string storage for values longer than 2045 bytes; it has no fixed declared width.",
+   "grammar": "generate strL name = exp",
+   "examples": [
+    "generate strL sL = \"abc\""
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/generation.py accepts the 'strL' token and describe reports strL, but the column is an ordinary Python object column: there is no 2045-byte boundary check and no distinct strL read/write path.",
+   "sources": [
+    "sthlp:d/data_types.sthlp",
+    "sthlp:r/recast.sthlp",
+    "targets:Data types",
+    "targets:recast"
+   ]
+  },
+  {
+   "name": "type_recast",
+   "area": "storage-types",
+   "kind": "type",
+   "summary": "Changes a variable's storage type in place, refusing conversions that would lose information unless force is given.",
+   "grammar": "recast type varlist [, force]",
+   "examples": [
+    "recast double b",
+    "compress"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/extended_data.py _recast(): rewrites the column and storage_types; rc 459 'recast would lose information; specify force' when values change. compress is implemented as well (extended_data._compress()) and picks the smallest type that holds the values.",
+   "sources": [
+    "sthlp:d/data_types.sthlp",
+    "sthlp:r/recast.sthlp",
+    "targets:Data types",
+    "targets:recast"
+   ]
+  },
+  {
+   "name": "fmt_g",
+   "area": "formats",
+   "kind": "type",
+   "summary": "General format: the fewest characters that identify the value, switching to scientific notation by Stata's rules; the digit model is documented in docs/formats.md and reproduced exactly.",
+   "grammar": "%w.dg  (and %w.dgc)",
+   "examples": [
+    "display %9.3g 3.14159265",
+    "display %18.0g 1/3"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/formats.py _general()/format_value(); the %g model is checked byte-for-byte against Stata 19.5. Measured live: %9.3g 3.14159265 -> '     3.14' and %9.0g 123456789.5 -> ' 1.23e+08' in both runtimes.",
+   "sources": [
+    "sthlp:f/format.sthlp",
+    "targets:format"
+   ]
+  },
+  {
+   "name": "fmt_f",
+   "area": "formats",
+   "kind": "type",
+   "summary": "Fixed point with d digits after the decimal point, right justified in w columns; a leading 0 in the width keeps the field zero-filled.",
+   "grammar": "%w.df  (and %w.dfc)",
+   "examples": [
+    "display %9.2f 3.14159",
+    "display %06.2f 3.5"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/formats.py format_value() kind 'f' formats with Python and pads with spaces only. GAP: '%06.2f 3.5' renders '3.50' here and '003.50' in Stata, so the zero-fill flag is ignored.",
+   "sources": [
+    "sthlp:f/format.sthlp",
+    "targets:format"
+   ]
+  },
+  {
+   "name": "fmt_e",
+   "area": "formats",
+   "kind": "type",
+   "summary": "Scientific notation with d digits after the decimal point and a two-digit, sign-prefixed exponent.",
+   "grammar": "%w.de  (and %w.dec)",
+   "examples": [
+    "display %12.4e 31415.9265"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/formats.py format_value() else-branch uses precision-1 digits, strips trailing zeros and prints the exponent without zero padding. GAP: '%12.4e 31415.9265' renders '3.142e+4' here and '  3.1416e+04' in Stata.",
+   "sources": [
+    "sthlp:f/format.sthlp",
+    "targets:format"
+   ]
+  },
+  {
+   "name": "fmt_s",
+   "area": "formats",
+   "kind": "type",
+   "summary": "String format: right justified in w columns, truncating or padding as declared.",
+   "grammar": "%w.ds",
+   "examples": [
+    "display %10s \"abc\""
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/formats.py is_text_format()/format_value() (the string branch requires a %s format and raises FormatError otherwise).",
+   "sources": [
+    "sthlp:f/format.sthlp",
+    "targets:format"
+   ]
+  },
+  {
+   "name": "fmt_c",
+   "area": "formats",
+   "kind": "type",
+   "summary": "The c suffix inserts thousands separators in the integer part.",
+   "grammar": "%w.dfc / %w.dgc   (comma flag)",
+   "examples": [
+    "display %8.0gc 1000"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/formats.py _group(); measured '%8.0gc 1000' -> '1,000' and '%12.2fc 12345.678' -> '12,345.68'.",
+   "sources": [
+    "sthlp:f/format.sthlp",
+    "targets:format"
+   ]
+  },
+  {
+   "name": "fmt_date",
+   "area": "formats",
+   "kind": "type",
+   "summary": "Date and time formats render a numeric value as a calendar date or timestamp with a chosen sub-format.",
+   "grammar": "%td... %tc... %tw %tm %tq %th %ty %tb",
+   "examples": [
+    "display %td 20000"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "openstat/formats.py knows the DATE regex (is_date_format) but format_value() has no date branch and raises FormatError('invalid %format %td'). 'format y %td' is accepted and then 'display y[1]' shows the plain number; 'display %td 20000' is rc 198 here and rc 0 in Stata.",
+   "sources": [
+    "sthlp:f/format.sthlp",
+    "targets:format"
+   ]
+  },
+  {
+   "name": "fmt_widen",
+   "area": "formats",
+   "kind": "type",
+   "summary": "A value that does not fit the declared width is widened, never truncated, and the field is right justified.",
+   "grammar": "%w...   when the value needs more than w columns",
+   "examples": [
+    "display %4.2f 12345.678"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/formats.py format_value(): 'if len(text) > width: width = len(text)' then rjust(width).",
+   "sources": [
+    "sthlp:f/format.sthlp",
+    "targets:format"
+   ]
+  },
+  {
+   "name": "rclass",
+   "area": "results",
+   "kind": "result-class",
+   "summary": "Results of general commands: r(N), r(mean), r(sum_w), r(Var), ... set by summarize, count, tabulate and the return command.",
+   "grammar": "r(name)",
+   "examples": [
+    "summarize y",
+    "display r(mean)"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/engine.py Engine.returns + expression.py Evaluator.result(group='r'); return list prints a Python dict, which is not Stata's layout.",
+   "sources": [
+    "sthlp:s/stored_results.sthlp",
+    "sthlp:r/return.sthlp",
+    "targets:Stored results",
+    "targets:return"
+   ]
+  },
+  {
+   "name": "eclass",
+   "area": "results",
+   "kind": "result-class",
+   "summary": "Results of estimation commands: e(N), e(r2), e(b), e(V), e(ll), e(df_r), ...",
+   "grammar": "e(name)",
+   "examples": [
+    "regress y z",
+    "display e(N)"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/statistics.py stores into Engine.estimates; expression.py Evaluator.result(group='e'). 'return scalar' inside an eclass program still lands in r(), which Stata does not do.",
+   "sources": [
+    "sthlp:s/stored_results.sthlp",
+    "sthlp:r/return.sthlp",
+    "targets:Stored results",
+    "targets:return"
+   ]
+  },
+  {
+   "name": "sclass",
+   "area": "results",
+   "kind": "result-class",
+   "summary": "Results of parsing commands, listed with sreturn list.",
+   "grammar": "s(name)",
+   "examples": [
+    "sreturn list"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "openstat/macros.py _resolve_class handles r/e/c only, and expression.py Evaluator.result has no 's' group. Measured: 'display s(nosuch)' is rc 111 'nosuch not found' here (Stata: missing value, rc 0) and 'sreturn list' is rc 199.",
+   "sources": [
+    "sthlp:s/stored_results.sthlp",
+    "sthlp:r/return.sthlp",
+    "targets:Stored results",
+    "targets:return"
+   ]
+  },
+  {
+   "name": "cclass",
+   "area": "results",
+   "kind": "result-class",
+   "summary": "Session values: c(N), c(k), c(pi), c(version), c(flavor), c(pwd), c(rc), c(seed), c(filename), c(adopath), ...",
+   "grammar": "c(name)",
+   "examples": [
+    "display c(N)",
+    "display c(pi)"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/cclass.py build_cclass() defines exactly the names Stata 19.5 defines; an unknown name in expression position raises rc 133, matching Stata. Documented divergences: c(seed) is the numeric seed rather than the hex RNG state, c(adopath) is OpenStat's ado directory, c(mode) is always 'batch'.",
+   "sources": [
+    "sthlp:s/stored_results.sthlp",
+    "sthlp:r/return.sthlp",
+    "targets:Stored results",
+    "targets:return"
+   ]
+  },
+  {
+   "name": "macro_position",
+   "area": "results",
+   "kind": "result-class",
+   "summary": "In macro position the value is text: the number rendered with %18.0g and the padding removed. An unset r()/e() name expands to nothing.",
+   "grammar": "`r(name)' | `e(name)' | `c(name)'",
+   "examples": [
+    "summarize y",
+    "display \"`r(mean)'\""
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/macros.py expand_macros()/_resolve_class(), MACRO_FORMAT = '%18.0g'; engine._macro_text() uses the same format. GAP: an unset *local* or *global* expands to the literal '`name'' here, where Stata expands it to the empty string.",
+   "sources": [
+    "sthlp:s/stored_results.sthlp",
+    "sthlp:r/return.sthlp",
+    "targets:Stored results",
+    "targets:return"
+   ]
+  },
+  {
+   "name": "expression_position",
+   "area": "results",
+   "kind": "result-class",
+   "summary": "In an expression the value is a number and is displayed with the default numeric format; an unset r()/e() is the missing value.",
+   "grammar": "r(name) | e(name) | c(name)",
+   "examples": [
+    "display r(mean)",
+    "display e(N)"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/expression.py Evaluator.result(); parser_expr.py rewrites the reference into __result(group, key). Measured: 'display r(nosuch)' -> '.', 'display c(pi)' -> 3.1415927, both matching Stata 19.5.",
+   "sources": [
+    "sthlp:s/stored_results.sthlp",
+    "sthlp:r/return.sthlp",
+    "targets:Stored results",
+    "targets:return"
+   ]
+  },
+  {
+   "name": "result_listing",
+   "area": "results",
+   "kind": "result-class",
+   "summary": "Lists the stored results of the current class.",
+   "grammar": "return list [, all] | ereturn list [, all] | sreturn list",
+   "examples": [
+    "summarize y",
+    "return list"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/engine.py _return()/_ereturn() emit a Python dict repr rather than Stata's aligned list; sreturn is rc 199.",
+   "sources": [
+    "sthlp:s/stored_results.sthlp",
+    "sthlp:r/return.sthlp",
+    "targets:Stored results",
+    "targets:return"
+   ]
+  },
+  {
+   "name": "prefix_capture",
+   "area": "prefixes",
+   "kind": "prefix",
+   "summary": "Runs the command, suppresses its error, and leaves the return code in _rc so the caller can test it.",
+   "grammar": "capture: command | capture command",
+   "examples": [
+    "capture display nosuchvar",
+    "display _rc"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/engine.py Engine.command(): catches StataError/MacroError/OSError and friends, sets self.rc from the exception (default 198). GAP: the block form 'capture { ... }' is not recognised (rc 199 'command { not implemented'); Stata accepts it with rc 0.",
+   "sources": [
+    "sthlp:p/prefix.sthlp",
+    "sthlp:c/capture.sthlp",
+    "targets:capture",
+    "targets:prefix"
+   ]
+  },
+  {
+   "name": "prefix_quietly",
+   "area": "prefixes",
+   "kind": "prefix",
+   "summary": "Runs the command with its output suppressed; the results it stores remain available.",
+   "grammar": "quietly: command | quietly command",
+   "examples": [
+    "quietly summarize y",
+    "display r(mean)"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/engine.py Engine.command() increments self._quiet before the call and restores it after; Engine.emit() drops output while _quiet > 0. GAP: 'quietly { ... }' blocks are not recognised (rc 199), Stata accepts them.",
+   "sources": [
+    "sthlp:p/prefix.sthlp",
+    "sthlp:c/capture.sthlp",
+    "targets:capture",
+    "targets:prefix"
+   ]
+  },
+  {
+   "name": "prefix_noisily",
+   "area": "prefixes",
+   "kind": "prefix",
+   "summary": "Re-enables output for one command inside a quiet context.",
+   "grammar": "noisily: command | noisily command",
+   "examples": [
+    "quietly summarize y"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/engine.py Engine.command(): sets self._quiet = 0 for the duration of the command.",
+   "sources": [
+    "sthlp:p/prefix.sthlp",
+    "sthlp:c/capture.sthlp",
+    "targets:capture",
+    "targets:prefix"
+   ]
+  },
+  {
+   "name": "prefix_version",
+   "area": "prefixes",
+   "kind": "prefix",
+   "summary": "Declares the Stata version the following code is written for; commands are then interpreted with that version's rules.",
+   "grammar": "version #: command | version #",
+   "examples": [
+    "version 15: display 1"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/engine.py Engine.command(): accepts version <= 19.5, runs the rest of the line, and raises rc 9 'unsupported version request' above that. No per-version behaviour switch is applied.",
+   "sources": [
+    "sthlp:p/prefix.sthlp",
+    "sthlp:c/capture.sthlp",
+    "targets:capture",
+    "targets:prefix"
+   ]
+  },
+  {
+   "name": "prefix_statsby",
+   "area": "prefixes",
+   "kind": "prefix",
+   "summary": "Runs a command per group and collects the stored results into a new dataset.",
+   "grammar": "statsby [namelist] [, options]: command",
+   "examples": [
+    "statsby, by(g): summarize y"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "openstat/engine.py has no statsby branch; 'statsby, by(g): summarize y' is rc 199 here. Stata parses the prefix and runs it (rc 4 only because of an unrelated unsaved-data check).",
+   "sources": [
+    "sthlp:p/prefix.sthlp",
+    "sthlp:c/capture.sthlp",
+    "targets:capture",
+    "targets:prefix"
+   ]
+  },
+  {
+   "name": "prefix_svy",
+   "area": "prefixes",
+   "kind": "prefix",
+   "summary": "Runs an estimation command with the survey design declared by svyset.",
+   "grammar": "svy [, options]: command",
+   "examples": [
+    "svy: regress y z"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "No svy branch in openstat/engine.py; 'svy: regress y z' is rc 199 here. Stata recognises the prefix and stops with rc 119 'data not set up for svy, use svyset'.",
+   "sources": [
+    "sthlp:p/prefix.sthlp",
+    "sthlp:c/capture.sthlp",
+    "targets:capture",
+    "targets:prefix"
+   ]
+  },
+  {
+   "name": "prefix_mi",
+   "area": "prefixes",
+   "kind": "prefix",
+   "summary": "Runs a command on each multiply-imputed dataset and combines the results.",
+   "grammar": "mi estimate [, options]: command",
+   "examples": [
+    "mi estimate: regress y z"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "No mi branch in openstat/engine.py; 'mi estimate: regress y z' is rc 199 here. Stata recognises the prefix and stops with rc 119 'data not mi set'.",
+   "sources": [
+    "sthlp:p/prefix.sthlp",
+    "sthlp:c/capture.sthlp",
+    "targets:capture",
+    "targets:prefix"
+   ]
+  },
+  {
+   "name": "prefix_bayes",
+   "area": "prefixes",
+   "kind": "prefix",
+   "summary": "Re-estimates a supported command as a Bayesian model by MCMC.",
+   "grammar": "bayes [, options]: command",
+   "examples": [
+    "bayes: regress y z"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "No bayes branch in openstat/engine.py; 'bayes: regress y z' is rc 199 here. Stata runs the full sampler (rc 0).",
+   "sources": [
+    "sthlp:p/prefix.sthlp",
+    "sthlp:c/capture.sthlp",
+    "targets:capture",
+    "targets:prefix"
+   ]
+  },
+  {
+   "name": "syntax_command",
+   "area": "syntax",
+   "kind": "command-group",
+   "summary": "Parses the program's argument list against a declared grammar and stores each matched piece in a local macro; a mismatch stops with rc 197 in Stata and rc 198 here.",
+   "grammar": "syntax spec [, options]",
+   "examples": [
+    "program define p",
+    "syntax varname [if] [in]",
+    "end"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/syntax.py SyntaxCommand, invoked by Engine._syntax_command(); used by program bodies and by marksample via _syntax_marker().",
+   "sources": [
+    "sthlp:s/syntax.sthlp",
+    "targets:syntax"
+   ]
+  },
+  {
+   "name": "syntax_varlist_element",
+   "area": "syntax",
+   "kind": "option-group",
+   "summary": "Declares which part of the argument list is a name list and binds it to a local of the same name; 'varname' requires exactly one name.",
+   "grammar": "[varlist] | varname | newvarlist | newvarname | namelist",
+   "examples": [
+    "syntax varlist [if] [in]"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/syntax.py _parse_elements()/SyntaxCommand.run(): names are resolved through Engine.varlist(); a missing required element raises 'varname required' (rc 100).",
+   "sources": [
+    "sthlp:s/syntax.sthlp",
+    "targets:syntax"
+   ]
+  },
+  {
+   "name": "syntax_anything_element",
+   "area": "syntax",
+   "kind": "option-group",
+   "summary": "Captures the remaining argument text verbatim, optionally into a named local.",
+   "grammar": "[anything [name=...]]",
+   "examples": [
+    "syntax anything(name=stuff)"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/syntax.py run(): the 'anything' element stores the remaining text under the element (or its name= local).",
+   "sources": [
+    "sthlp:s/syntax.sthlp",
+    "targets:syntax"
+   ]
+  },
+  {
+   "name": "syntax_ifin_elements",
+   "area": "syntax",
+   "kind": "option-group",
+   "summary": "Captures the if and in qualifiers as text, including the keyword, so the program can pass them on.",
+   "grammar": "[if] [in]",
+   "examples": [
+    "syntax varname [if] [in]"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/engine.py _syntax_command() stores _syntax_if/_syntax_in and the locals 'if'/'in'. Measured: 'if=[if y > 4] in=[in 2/5]', matching Stata.",
+   "sources": [
+    "sthlp:s/syntax.sthlp",
+    "targets:syntax"
+   ]
+  },
+  {
+   "name": "syntax_using_element",
+   "area": "syntax",
+   "kind": "option-group",
+   "summary": "Declares a file argument; the '/' form allows the keyword using to be omitted.",
+   "grammar": "[using filename] | using/",
+   "examples": [
+    "syntax using/"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/syntax.py run() handles an element named 'using' but not the 'using/' spelling, and it requires the literal word using. Measured: 'syntax using/' + 'p foo.dta' is rc 100 'using required' here, while Stata gives rc 101 'varlist not allowed'.",
+   "sources": [
+    "sthlp:s/syntax.sthlp",
+    "targets:syntax"
+   ]
+  },
+  {
+   "name": "syntax_exp_element",
+   "area": "syntax",
+   "kind": "option-group",
+   "summary": "Captures the right-hand side of a leading = as an expression, stored in the local exp.",
+   "grammar": "[=exp]",
+   "examples": [
+    "syntax [varlist] [=exp]"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/syntax.py run(): the '=' element strips the = and stores 'exp'.",
+   "sources": [
+    "sthlp:s/syntax.sthlp",
+    "targets:syntax"
+   ]
+  },
+  {
+   "name": "syntax_weight_element",
+   "area": "syntax",
+   "kind": "option-group",
+   "summary": "Declares that the command accepts a weight; the weight type and its expression are then available as locals.",
+   "grammar": "[aweight] [fweight] [pweight] [iweight] | [weight]",
+   "examples": [
+    "syntax varlist [aweight]"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "openstat/syntax.py _parse_elements() has no weight branch; measured 'syntax varlist [weight]' is rc 199 'syntax descriptor not implemented: weight'. Stata 19.5 answers rc 197 for the bare [weight] spelling and leaves the aweight/wexp locals empty for [aweight].",
+   "sources": [
+    "sthlp:s/syntax.sthlp",
+    "targets:syntax"
+   ]
+  },
+  {
+   "name": "syntax_option_switch",
+   "area": "syntax",
+   "kind": "option-group",
+   "summary": "Declares a yes/no option; the local named after the option is 1 when it was given and empty otherwise.",
+   "grammar": "[, NAME]",
+   "examples": [
+    "syntax [varlist] [, Verbose]"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/syntax.py _parse_option_spec() kind 'switch'; a value supplied to a switch raises 'option ... does not take a value'.",
+   "sources": [
+    "sthlp:s/syntax.sthlp",
+    "targets:syntax"
+   ]
+  },
+  {
+   "name": "syntax_option_typed",
+   "area": "syntax",
+   "kind": "option-group",
+   "summary": "Declares an option that takes an argument of a stated type, with an optional default; the local holds the supplied or default value.",
+   "grammar": "[, NAME(integer #) | NAME(real #) | NAME(string) | NAME(namelist) | NAME(numlist)]",
+   "examples": [
+    "syntax [varlist] [, Level(integer 95)]"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/syntax.py _parse_option_spec()/_argument coercion: kinds integer, real, string, namelist, numlist, anything/passthru, with the asis flag. Measured: 'p y, level(90) verbose' sets level=90 and verbose=1.",
+   "sources": [
+    "sthlp:s/syntax.sthlp",
+    "targets:syntax"
+   ]
+  },
+  {
+   "name": "program_define",
+   "area": "program-support",
+   "kind": "command-group",
+   "summary": "Defines a program from the following block, up to 'end'; the options declare what the program stores and how it may be called.",
+   "grammar": "program [define] name [, rclass | eclass | sclass | sortpreserve | byable(...) | properties(...) | plugin]",
+   "examples": [
+    "program define p, rclass",
+    "return scalar v = 3",
+    "end"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/engine.py _define_program(); PROGRAM_OPTIONS accepts rclass, eclass, sclass, sortpreserve, byable, properties and others, and _call_program() restores locals and sort order. GAP: 'nclass' is rejected (rc 198 'option nclass not allowed') although Stata accepts it.",
+   "sources": [
+    "sthlp:p/program.sthlp",
+    "sthlp:m/mark.sthlp",
+    "targets:program",
+    "targets:mark"
+   ]
+  },
+  {
+   "name": "program_rclass_return",
+   "area": "program-support",
+   "kind": "command-group",
+   "summary": "Stores a result in r(), or in e() when the program is declared eclass.",
+   "grammar": "return scalar name = exp | return local name value",
+   "examples": [
+    "program define p, eclass",
+    "return scalar v = 3",
+    "end"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/engine.py _return() always writes Engine.returns, so a value stored with 'return scalar' inside an eclass program is visible as r() and missing as e(). Stata routes it to e().",
+   "sources": [
+    "sthlp:p/program.sthlp",
+    "sthlp:m/mark.sthlp",
+    "targets:program",
+    "targets:mark"
+   ]
+  },
+  {
+   "name": "marksample",
+   "area": "program-support",
+   "kind": "command-group",
+   "summary": "Builds the 0/1 to-use marker implied by the program's last syntax command (if/in plus missing values in the varlist, and zero weights) and points a local macro at it.",
+   "grammar": "marksample local [, novarlist strok zeroweight noby sysmisok]",
+   "examples": [
+    "marksample touse",
+    "quietly summarize y if `touse'"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/program_support.py _marksample()/_syntax_marker()/_store_marker(): the marker lives in a hidden variable __NNNNNN and the named local expands to it, which is how Stata's marksample also behaves.",
+   "sources": [
+    "sthlp:p/program.sthlp",
+    "sthlp:m/mark.sthlp",
+    "targets:program",
+    "targets:mark"
+   ]
+  },
+  {
+   "name": "mark",
+   "area": "program-support",
+   "kind": "command-group",
+   "summary": "Creates a named marker variable: 1 where the observation is in the sample and carries no missing value, 0 elsewhere.",
+   "grammar": "mark newmarkvar [if] [in] [weight] [, zeroweight noby]",
+   "examples": [
+    "mark flag if g == 1",
+    "describe flag"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/program_support.py _marksample() handles the 'mark name if ...' form but stores the result in a hidden __NNNNNN variable and only points the local at it. GAP: the variable has the requested name in Stata (byte %8.0g); here 'mark flag if g == 1' then 'describe flag' is rc 111.",
+   "sources": [
+    "sthlp:m/mark.sthlp",
+    "sthlp:p/program.sthlp",
+    "targets:mark"
+   ]
+  },
+  {
+   "name": "markout",
+   "area": "program-support",
+   "kind": "command-group",
+   "summary": "Zeroes the marker for observations where any listed variable is missing, leaving the already-marked zeros alone.",
+   "grammar": "markout markvar [varlist] [, strok sysmisok]",
+   "examples": [
+    "marksample touse",
+    "markout `touse' y"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/program_support.py _markout(): reads the marker variable, ANDs in the non-missing condition (strok keeps empty strings).",
+   "sources": [
+    "sthlp:p/program.sthlp",
+    "sthlp:m/mark.sthlp",
+    "targets:program",
+    "targets:mark"
+   ]
+  },
+  {
+   "name": "tempvar_tempname_tempfile",
+   "area": "program-support",
+   "kind": "command-group",
+   "summary": "Allocates hidden names from one counter (__000001, ...) and, for tempfile, a path in a temporary directory.",
+   "grammar": "tempvar name [name ...] | tempname name [name ...] | tempfile name [...]",
+   "examples": [
+    "tempvar t",
+    "tempname m",
+    "tempfile f"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/program_support.py _temp_names()/_hidden_name(): tempvar and tempname share the counter; the values are stored as locals.",
+   "sources": [
+    "sthlp:p/program.sthlp",
+    "sthlp:m/mark.sthlp",
+    "targets:program",
+    "targets:mark"
+   ]
+  },
+  {
+   "name": "gettoken_args_tokenize",
+   "area": "program-support",
+   "kind": "command-group",
+   "summary": "Reads the program's positional arguments into locals, or splits a string into a first token and the rest.",
+   "grammar": "args namelist | gettoken name1 name2 : string [, parse(...)] | tokenize string [, parse(...)]",
+   "examples": [
+    "args a b",
+    "gettoken first rest : \"alpha beta\""
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/engine.py _gettoken() (parse() supported, match() refused with rc 199) plus programming.py _tokenize().",
+   "sources": [
+    "sthlp:p/program.sthlp",
+    "sthlp:m/mark.sthlp",
+    "targets:program",
+    "targets:mark"
+   ]
+  },
+  {
+   "name": "missing_dot",
+   "area": "missing",
+   "kind": "type",
+   "summary": "The system missing value: a numeric value that is larger than any real number and is treated as absent by every command and function.",
+   "grammar": ".",
+   "examples": [
+    "generate m = .",
+    "display missing(m[1])"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/expression.py _missing()/_ordered() map it to NaN and sort it last; formats.format_value() prints '.'.",
+   "sources": [
+    "sthlp:m/missing.sthlp",
+    "targets:missing"
+   ]
+  },
+  {
+   "name": "missing_extended",
+   "area": "missing",
+   "kind": "type",
+   "summary": "26 additional numeric missing values that sort between '.' and infinity and can be stored in a dataset.",
+   "grammar": ".a ... .z",
+   "examples": [
+    "display .a",
+    "replace m = .a in 1"
+   ],
+   "openstat_status": "absent",
+   "openstat_note": "The expression tokenizer has no .a-.z literal, so 'display .a' is rc 198 'unsupported expression: .a' (Stata: 'a', rc 0); Engine._read() refuses any dataset containing user missing values with rc 199; metadata.py refuses them on write; mvencode is rc 199. Stata stores them and prints .a.",
+   "sources": [
+    "sthlp:m/missing.sthlp",
+    "targets:missing"
+   ]
+  },
+  {
+   "name": "missing_function",
+   "area": "missing",
+   "kind": "operator",
+   "summary": "True when the argument is a missing value; both spellings are accepted.",
+   "grammar": "missing(x) | mi(x)",
+   "examples": [
+    "display missing(.)",
+    "display mi(.)"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/expression.py Evaluator.missing() plus the 'mi' alias. Works for '.' and for empty strings; an argument written as '.a' cannot be parsed, so the extended forms are unreachable.",
+   "sources": [
+    "sthlp:m/missing.sthlp",
+    "targets:missing"
+   ]
+  },
+  {
+   "name": "missing_ladder",
+   "area": "missing",
+   "kind": "type",
+   "summary": "Stata's overflow markers come from the same ladder as .a-.z: a value that cannot be printed is shown as .<letter>_ and a genuine .<letter> as .<letter>.",
+   "grammar": "values at or beyond 2**1023",
+   "examples": [
+    "display 1e308 * 10"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/formats.py _overflow_marker() implements the ladder L(n) = 0x7fe0010000000000 + n*2**40 (see docs/formats.md).",
+   "sources": [
+    "sthlp:m/missing.sthlp",
+    "targets:missing"
+   ]
+  },
+  {
+   "name": "mata_st_data",
+   "area": "mata",
+   "kind": "operator",
+   "summary": "Reads observations of Stata variables into a Mata matrix; obs may be a range, a vector or '.' for all observations.",
+   "grammar": "st_data(obs, varlist)",
+   "examples": [
+    "mata: X = st_data(., \"y\")",
+    "mata: X = st_data(1::3, (\"y\",\"z\"))"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/mata.py Mata.st_data(): iloc indexing over the named columns. GAP: the frame is cast to float, so reading a string variable fails with rc 199 'invalid Mata statement: could not convert string to float'.",
+   "sources": [
+    "sthlp:m/m4_stata.sthlp",
+    "sthlp:m/m3_mata.sthlp",
+    "targets:Stata",
+    "targets:mata"
+   ]
+  },
+  {
+   "name": "mata_st_store",
+   "area": "mata",
+   "kind": "operator",
+   "summary": "Writes a Mata matrix back into Stata variables, checking that the shapes conform.",
+   "grammar": "st_store(obs, varlist, value)",
+   "examples": [
+    "mata: st_store(1, \"y\", 99)"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/mata.py Mata.st_store(): accepts a scalar or an (len(obs) x len(varlist)) block and otherwise raises 'Mata matrices not conformable'.",
+   "sources": [
+    "sthlp:m/m4_stata.sthlp",
+    "sthlp:m/m3_mata.sthlp",
+    "targets:Stata",
+    "targets:mata"
+   ]
+  },
+  {
+   "name": "mata_st_matrix",
+   "area": "mata",
+   "kind": "operator",
+   "summary": "Reads or writes a Stata matrix; Stata matrices are visible from both languages.",
+   "grammar": "st_matrix(name [, value])",
+   "examples": [
+    "mata: M = st_matrix(\"A\")"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/mata.py Mata.st_matrix() bridges Engine.matrices; 'matrix A = (1,2\\3,4)' then 'st_matrix(\"A\")' round-trips.",
+   "sources": [
+    "sthlp:m/m4_stata.sthlp",
+    "sthlp:m/m3_mata.sthlp",
+    "targets:Stata",
+    "targets:mata"
+   ]
+  },
+  {
+   "name": "mata_st_numscalar",
+   "area": "mata",
+   "kind": "operator",
+   "summary": "Reads or writes a Stata scalar as a Mata scalar.",
+   "grammar": "st_numscalar(name [, value])",
+   "examples": [
+    "mata: st_numscalar(\"s1\", 42)"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/mata.py Mata.st_numscalar() bridges Engine.scalars.",
+   "sources": [
+    "sthlp:m/m4_stata.sthlp",
+    "sthlp:m/m3_mata.sthlp",
+    "targets:Stata",
+    "targets:mata"
+   ]
+  },
+  {
+   "name": "mata_st_local",
+   "area": "mata",
+   "kind": "operator",
+   "summary": "Reads or writes a Stata local macro as a Mata string.",
+   "grammar": "st_local(name [, value])",
+   "examples": [
+    "mata: st_local(\"l1\", \"hello\")"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/mata.py Mata.st_local() -> _macro(Engine.locals); measured 'st_local(\"back\", st_local(\"q\"))' round-trips through a local.",
+   "sources": [
+    "sthlp:m/m4_stata.sthlp",
+    "sthlp:m/m3_mata.sthlp",
+    "targets:Stata",
+    "targets:mata"
+   ]
+  },
+  {
+   "name": "mata_st_global",
+   "area": "mata",
+   "kind": "operator",
+   "summary": "Reads or writes a Stata global macro as a Mata string.",
+   "grammar": "st_global(name [, value])",
+   "examples": [
+    "mata: st_global(\"g1\", \"hi\")"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/mata.py Mata.st_global() -> _macro(Engine.globals).",
+   "sources": [
+    "sthlp:m/m4_stata.sthlp",
+    "sthlp:m/m3_mata.sthlp",
+    "targets:Stata",
+    "targets:mata"
+   ]
+  },
+  {
+   "name": "mata_J",
+   "area": "mata",
+   "kind": "operator",
+   "summary": "Creates a rows x cols matrix filled with value.",
+   "grammar": "J(rows, cols, value)",
+   "examples": [
+    "mata: A = J(2,3,7)"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/mata.py Mata._fill() with an allocation cap (max_cells).",
+   "sources": [
+    "sthlp:m/m4_stata.sthlp",
+    "sthlp:m/m3_mata.sthlp",
+    "targets:Stata",
+    "targets:mata"
+   ]
+  },
+  {
+   "name": "mata_I",
+   "area": "mata",
+   "kind": "operator",
+   "summary": "Creates the n x n identity matrix.",
+   "grammar": "I(n)",
+   "examples": [
+    "mata: A = I(3)"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/mata.py Mata._identity().",
+   "sources": [
+    "sthlp:m/m4_stata.sthlp",
+    "sthlp:m/m3_mata.sthlp",
+    "targets:Stata",
+    "targets:mata"
+   ]
+  },
+  {
+   "name": "mata_builtins",
+   "area": "mata",
+   "kind": "operator",
+   "summary": "The builtin function library: matrix algebra, elementwise maths, row/column summaries, string and missing-value queries.",
+   "grammar": "function(args)   (the [M-5] builtin set)",
+   "examples": [
+    "mata: trace(I(3))",
+    "mata: st_numscalar(\"x\", invbreak(2))"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "openstat/mata.py Mata._builtin() implements the matrix, maths, row/colsum, select, missing and string families; anything absent raises 'Mata function name() not implemented' (rc 199) rather than returning a guess.",
+   "sources": [
+    "sthlp:m/m4_stata.sthlp",
+    "sthlp:m/m3_mata.sthlp",
+    "targets:Stata",
+    "targets:mata"
+   ]
+  },
+  {
+   "name": "rc_codes",
+   "area": "errors",
+   "kind": "result-class",
+   "summary": "Every failure carries Stata's numeric return code; _rc exposes the code of the last command and capture turns a failure into a code instead of a message.",
+   "grammar": "r(###)  /  _rc",
+   "examples": [
+    "capture display nosuchvar",
+    "display _rc"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/errors.py StataError(message, rc=198) is the single error type; Engine.rc/last_rc carry the code and 'display _rc' reports it. Codes used here include 5 (not sorted), 9 (assertion false), 100/101 (syntax), 109 (type mismatch), 110 (already defined), 111 (not found), 119, 133 (undefined c()), 197/198 (invalid syntax), 199 (not implemented), 451 (repeated time values), 459 (recast would lose information), 601 (file not found), 621/622 (preserve/restore), 693 (no graph), 2000/2001 (no observations / observation number out of range).",
+   "sources": [
+    "sthlp:e/error_messages.sthlp",
+    "targets:Error messages"
+   ]
+  },
+  {
+   "name": "rc_fail_explicitly",
+   "area": "errors",
+   "kind": "result-class",
+   "summary": "Anything the runtime does not implement stops with an explicit message and rc 199 instead of quietly doing something else.",
+   "grammar": "unimplemented command or option",
+   "examples": [
+    "nosuchcommand",
+    "summarize y, nosuchoption"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "openstat/engine.py Engine.command() ends with 'command {c} is not implemented in OpenStat' (rc 199); options are validated against an allow-list by Engine.options(), and unknown functions/descriptors raise explicitly.",
+   "sources": [
+    "sthlp:e/error_messages.sthlp",
+    "targets:Error messages"
+   ]
+  },
+  {
+   "name": "rc_measured_divergences",
+   "area": "errors",
+   "kind": "result-class",
+   "summary": "Where the code differs from Stata 19.5 the difference is a known, recorded gap rather than an accident.",
+   "grammar": "same command, both runtimes",
+   "examples": [
+    "count in 0/2",
+    "by g: regress y z"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "Measured on this host: 'count in 0/2' rc 0 here vs 198 in Stata; 'by g: regress' 199 vs 0; 'syntax varlist [weight]' 199 vs 197; 'syntax using/' + bare file 100 vs 101; 'display .a' 198 vs 0; 'syntax varname' with a missing argument 100 (Stata: 100 too).",
+   "sources": [
+    "sthlp:e/error_messages.sthlp",
+    "targets:Error messages"
+   ]
+  },
+  {
+   "name": "group_data",
+   "area": "command-groups",
+   "kind": "command-group",
+   "summary": "Commands that read, write, reshape or describe the dataset.",
+   "grammar": "data commands",
+   "examples": [
+    "use auto.dta",
+    "describe",
+    "list price"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "Implemented: use save saveold import export append merge reshape collapse expand contract preserve restore keep drop rename order sort gsort duplicates generate replace egen recode encode decode destring tostring recast compress format label describe list tabulate summarize count correlate codebook inspect tabstat mean total centile. Missing (rc 199): table, collect, frame, mvencode, joinby variants beyond the implemented ones.",
+   "sources": [
+    "targets:use",
+    "targets:describe",
+    "targets:list"
+   ]
+  },
+  {
+   "name": "group_estimation",
+   "area": "command-groups",
+   "kind": "command-group",
+   "summary": "Commands that fit a model and store the fit in e().",
+   "grammar": "estimation commands",
+   "examples": [
+    "regress y z",
+    "display e(N)"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "Implemented: regress, logit, logistic, probit, poisson, areg, ivregress, reghdfe, xtreg, ttest, plus the factor-variable and weight machinery in openstat/design.py. Missing: the wider estimation catalogue (glm, mixed, nbreg, tobit, ...) and every estimator that also needs postestimation support.",
+   "sources": [
+    "targets:regress",
+    "targets:summarize",
+    "targets:margins",
+    "targets:graph",
+    "targets:program",
+    "targets:estimates"
+   ]
+  },
+  {
+   "name": "group_postestimation",
+   "area": "command-groups",
+   "kind": "command-group",
+   "summary": "Commands that read the stored estimation results and produce predictions, tests or tables.",
+   "grammar": "postestimation commands",
+   "examples": [
+    "regress y z",
+    "predict double yhat",
+    "test z"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "Implemented: predict, test, estimates store, eststo/estadd/esttab/estout (openstat/output.py). Missing (rc 199): margins with options, lincom, nlcom, estimates table, sreturn, and the [R] postestimation pages generally.",
+   "sources": [
+    "targets:regress",
+    "targets:summarize",
+    "targets:margins",
+    "targets:graph",
+    "targets:program",
+    "targets:estimates"
+   ]
+  },
+  {
+   "name": "group_graphics",
+   "area": "command-groups",
+   "kind": "command-group",
+   "summary": "Commands that draw a plot and export it.",
+   "grammar": "graphics commands",
+   "examples": [
+    "scatter y z",
+    "graph export plot.png, replace"
+   ],
+   "openstat_status": "partial",
+   "openstat_note": "Implemented: histogram/hist, kdensity, scatter, line, bar, box, dot, 'twoway scatter|line' single-plot form, and 'graph export' to PNG/SVG/PDF (openstat/graphics.py). Anything else in the graph grammar is rc 199 by design.",
+   "sources": [
+    "targets:regress",
+    "targets:summarize",
+    "targets:margins",
+    "targets:graph",
+    "targets:program",
+    "targets:estimates"
+   ]
+  },
+  {
+   "name": "group_programming",
+   "area": "command-groups",
+   "kind": "command-group",
+   "summary": "The do-file language itself: macros, control flow, programs and their support commands.",
+   "grammar": "programming commands",
+   "examples": [
+    "program define p",
+    "syntax varname",
+    "end"
+   ],
+   "openstat_status": "implemented",
+   "openstat_note": "Implemented: local global macro foreach forvalues while if/else program syntax marksample mark markout tempvar tempname tempfile args gettoken tokenize unab levelsof numlist do run include capture quietly noisily version display return ereturn scalar matrix mata.",
+   "sources": [
+    "targets:regress",
+    "targets:summarize",
+    "targets:margins",
+    "targets:graph",
+    "targets:program",
+    "targets:estimates"
+   ]
+  }
+ ]
+}

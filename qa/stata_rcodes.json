@@ -1,0 +1,5035 @@
+{
+ "schema_version": 1,
+ "generated_utc": "2026-10-22T16:34:04Z",
+ "oracle": {
+  "executable": "C:\\Program Files\\StataNow19\\StataMP-64.exe",
+  "version": "19.5"
+ },
+ "method": "batch Stata, one do-file per oracle: (a) capture noisily error N for every N in 1..9999; (b) capture noisily <command> for a curated set of command triggers. search rc and help are ignored in batch mode. Values are the text Stata prints above r(N); no StataCorp documentation was copied.",
+ "codes": {
+  "2": {
+   "text": "connection timed out",
+   "source": "stata-19.5:error-command"
+  },
+  "3": {
+   "text": "no dataset in use",
+   "source": "stata-19.5:error-command"
+  },
+  "4": {
+   "text": "no; dataset in memory has changed since last saved",
+   "source": "stata-19.5:command-trigger"
+  },
+  "5": {
+   "text": "not sorted",
+   "source": "stata-19.5:command-trigger"
+  },
+  "18": {
+   "text": "you must start with an empty dataset",
+   "source": "stata-19.5:error-command"
+  },
+  "100": {
+   "text": "varlist required",
+   "source": "stata-19.5:command-trigger",
+   "generic": "invalid syntax"
+  },
+  "101": {
+   "text": "varlist not allowed",
+   "source": "stata-19.5:command-trigger",
+   "generic": "invalid syntax"
+  },
+  "102": {
+   "text": "too few variables specified",
+   "source": "stata-19.5:error-command"
+  },
+  "103": {
+   "text": "too many variables specified",
+   "source": "stata-19.5:error-command"
+  },
+  "104": {
+   "text": "nothing to input",
+   "source": "stata-19.5:error-command"
+  },
+  "106": {
+   "text": "type mismatch",
+   "source": "stata-19.5:error-command"
+  },
+  "107": {
+   "text": "not possible with numeric variable",
+   "source": "stata-19.5:error-command"
+  },
+  "108": {
+   "text": "not possible with string variable",
+   "source": "stata-19.5:error-command"
+  },
+  "109": {
+   "text": "type mismatch",
+   "source": "stata-19.5:command-trigger"
+  },
+  "110": {
+   "text": "variable <name> already defined",
+   "source": "stata-19.5:command-trigger",
+   "generic": "invalid syntax"
+  },
+  "111": {
+   "text": "variable <name> not found",
+   "source": "stata-19.5:command-trigger",
+   "generic": "invalid syntax",
+   "variants": [
+    "variable <name> not found",
+    "matrix <name> not found",
+    "<name> not found",
+    "no variables defined"
+   ]
+  },
+  "119": {
+   "text": "statement out of context",
+   "source": "stata-19.5:command-trigger"
+  },
+  "120": {
+   "text": "invalid %format",
+   "source": "stata-19.5:command-trigger"
+  },
+  "121": {
+   "text": "invalid numlist",
+   "source": "stata-19.5:error-command"
+  },
+  "122": {
+   "text": "invalid numlist has too few elements",
+   "source": "stata-19.5:error-command"
+  },
+  "123": {
+   "text": "invalid numlist has too many elements",
+   "source": "stata-19.5:error-command"
+  },
+  "124": {
+   "text": "invalid numlist has elements out of order",
+   "source": "stata-19.5:error-command"
+  },
+  "125": {
+   "text": "invalid numlist has elements outside of allowed range",
+   "source": "stata-19.5:error-command"
+  },
+  "126": {
+   "text": "invalid numlist has noninteger elements",
+   "source": "stata-19.5:error-command"
+  },
+  "127": {
+   "text": "invalid numlist has missing values",
+   "source": "stata-19.5:error-command"
+  },
+  "130": {
+   "text": "expression too long",
+   "source": "stata-19.5:error-command"
+  },
+  "131": {
+   "text": "not possible with test",
+   "source": "stata-19.5:error-command"
+  },
+  "132": {
+   "text": "invalid syntax",
+   "source": "stata-19.5:error-command"
+  },
+  "133": {
+   "text": "c(<name>) undefined",
+   "source": "stata-19.5:command-trigger",
+   "generic": "invalid syntax"
+  },
+  "134": {
+   "text": "too many values",
+   "source": "stata-19.5:error-command"
+  },
+  "135": {
+   "text": "not possible with weighted data",
+   "source": "stata-19.5:error-command"
+  },
+  "140": {
+   "text": "repeated categorical variable in term",
+   "source": "stata-19.5:error-command"
+  },
+  "141": {
+   "text": "repeated term",
+   "source": "stata-19.5:error-command"
+  },
+  "142": {
+   "text": "attempt to classify extraneous variable",
+   "source": "stata-19.5:error-command"
+  },
+  "143": {
+   "text": "variable left unclassified",
+   "source": "stata-19.5:error-command"
+  },
+  "144": {
+   "text": "variable classified inconsistently",
+   "source": "stata-19.5:error-command"
+  },
+  "145": {
+   "text": "term contains more than 8 variables",
+   "source": "stata-19.5:error-command"
+  },
+  "146": {
+   "text": "too many variables or values (matsize too small)",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 1
+  },
+  "147": {
+   "text": "term not in model",
+   "source": "stata-19.5:error-command"
+  },
+  "148": {
+   "text": "too few categories",
+   "source": "stata-19.5:error-command"
+  },
+  "149": {
+   "text": "too many categories",
+   "source": "stata-19.5:error-command"
+  },
+  "151": {
+   "text": "non r-class program may not set r()",
+   "source": "stata-19.5:error-command"
+  },
+  "152": {
+   "text": "non e-class program may not set e()",
+   "source": "stata-19.5:error-command"
+  },
+  "153": {
+   "text": "non s-class program may not set s()",
+   "source": "stata-19.5:error-command"
+  },
+  "161": {
+   "text": "ado-file has commands outside of program define ... end",
+   "source": "stata-19.5:error-command"
+  },
+  "162": {
+   "text": "ado-file does not define command",
+   "source": "stata-19.5:error-command"
+  },
+  "170": {
+   "text": "internal FV error: generic",
+   "source": "stata-19.5:error-command"
+  },
+  "171": {
+   "text": "internal FV error: FV information not complete",
+   "source": "stata-19.5:error-command"
+  },
+  "172": {
+   "text": "internal FV error: FV terms not parsed",
+   "source": "stata-19.5:error-command"
+  },
+  "173": {
+   "text": "internal FV error: out of range for FV terms",
+   "source": "stata-19.5:error-command"
+  },
+  "174": {
+   "text": "internal FV error: out of range for FV ivars",
+   "source": "stata-19.5:error-command"
+  },
+  "175": {
+   "text": "factor level out of range",
+   "source": "stata-19.5:error-command"
+  },
+  "176": {
+   "text": "internal MS error: generic",
+   "source": "stata-19.5:error-command"
+  },
+  "180": {
+   "text": "invalid attempt to modify label",
+   "source": "stata-19.5:error-command"
+  },
+  "181": {
+   "text": "may not label strings",
+   "source": "stata-19.5:error-command"
+  },
+  "182": {
+   "text": "not labeled",
+   "source": "stata-19.5:error-command"
+  },
+  "184": {
+   "text": "may not be combined",
+   "source": "stata-19.5:error-command"
+  },
+  "190": {
+   "text": "request may not be combined with by",
+   "source": "stata-19.5:error-command"
+  },
+  "191": {
+   "text": "request may not be combined with by() option",
+   "source": "stata-19.5:error-command"
+  },
+  "196": {
+   "text": "could not restore sort order because variables were dropped",
+   "source": "stata-19.5:error-command"
+  },
+  "197": {
+   "text": "invalid syntax",
+   "source": "stata-19.5:error-command"
+  },
+  "198": {
+   "text": "invalid syntax",
+   "source": "stata-19.5:command-trigger",
+   "variants": [
+    "invalid syntax",
+    "option <name>foo not allowed"
+   ]
+  },
+  "199": {
+   "text": "command <name> is unrecognized",
+   "source": "stata-19.5:command-trigger",
+   "generic": "unrecognized command"
+  },
+  "301": {
+   "text": "last estimates not found",
+   "source": "stata-19.5:command-trigger"
+  },
+  "302": {
+   "text": "last test not found",
+   "source": "stata-19.5:command-trigger"
+  },
+  "303": {
+   "text": "equation [<name>] not found",
+   "source": "stata-19.5:command-trigger",
+   "generic": "equation not found"
+  },
+  "304": {
+   "text": "ml model not found",
+   "source": "stata-19.5:error-command"
+  },
+  "305": {
+   "text": "ml model not found",
+   "source": "stata-19.5:error-command"
+  },
+  "310": {
+   "text": "not possible because object(s) in use",
+   "source": "stata-19.5:error-command"
+  },
+  "321": {
+   "text": "requested action not valid after most recent estimation command",
+   "source": "stata-19.5:error-command"
+  },
+  "322": {
+   "text": "something that should be true of your estimation results is not",
+   "source": "stata-19.5:error-command"
+  },
+  "401": {
+   "text": "may not use noninteger frequency weights",
+   "source": "stata-19.5:error-command"
+  },
+  "402": {
+   "text": "negative weights encountered",
+   "source": "stata-19.5:error-command"
+  },
+  "403": {
+   "text": "may not specify norobust with pweights",
+   "source": "stata-19.5:error-command"
+  },
+  "404": {
+   "text": "not possible with pweighted data",
+   "source": "stata-19.5:error-command"
+  },
+  "406": {
+   "text": "not possible with analytic weights",
+   "source": "stata-19.5:error-command"
+  },
+  "407": {
+   "text": "weights must be the same for all observations in a group",
+   "source": "stata-19.5:error-command"
+  },
+  "411": {
+   "text": "nonpositive values encountered",
+   "source": "stata-19.5:error-command"
+  },
+  "412": {
+   "text": "redundant or inconsistent constraints",
+   "source": "stata-19.5:error-command"
+  },
+  "421": {
+   "text": "could not determine between-subject error term; use bse() option",
+   "source": "stata-19.5:error-command"
+  },
+  "422": {
+   "text": "could not determine between-subject basic unit; use bseunit() option",
+   "source": "stata-19.5:error-command"
+  },
+  "430": {
+   "text": "convergence not achieved",
+   "source": "stata-19.5:error-command"
+  },
+  "450": {
+   "text": "0/1 variable required",
+   "source": "stata-19.5:error-command"
+  },
+  "451": {
+   "text": "invalid values for time variable",
+   "source": "stata-19.5:error-command"
+  },
+  "452": {
+   "text": "invalid values for factor variable",
+   "source": "stata-19.5:error-command"
+  },
+  "459": {
+   "text": "something that should be true of your data is not",
+   "source": "stata-19.5:error-command"
+  },
+  "460": {
+   "text": "fpc must be >= 0",
+   "source": "stata-19.5:error-command"
+  },
+  "461": {
+   "text": "fpc for all observations within a stratum must be the same",
+   "source": "stata-19.5:error-command"
+  },
+  "462": {
+   "text": "fpc must be <= 1 if a rate, or >= no. sampled units per stratum if unit totals",
+   "source": "stata-19.5:error-command"
+  },
+  "463": {
+   "text": "sum of weights equals zero",
+   "source": "stata-19.5:error-command"
+  },
+  "464": {
+   "text": "poststratum weights must be constant within poststrata",
+   "source": "stata-19.5:error-command"
+  },
+  "465": {
+   "text": "poststratum weights must be >= 0",
+   "source": "stata-19.5:error-command"
+  },
+  "466": {
+   "text": "standardization weights must be constant within standard strata",
+   "source": "stata-19.5:error-command"
+  },
+  "467": {
+   "text": "standardization weights must be >= 0",
+   "source": "stata-19.5:error-command"
+  },
+  "471": {
+   "text": "esample() invalid",
+   "source": "stata-19.5:error-command"
+  },
+  "481": {
+   "text": "equation/system not identified",
+   "source": "stata-19.5:error-command"
+  },
+  "501": {
+   "text": "matrix operation not found",
+   "source": "stata-19.5:error-command"
+  },
+  "503": {
+   "text": "conformability error",
+   "source": "stata-19.5:error-command"
+  },
+  "504": {
+   "text": "matrix has missing values",
+   "source": "stata-19.5:error-command"
+  },
+  "505": {
+   "text": "matrix not symmetric",
+   "source": "stata-19.5:error-command"
+  },
+  "506": {
+   "text": "matrix not positive definite",
+   "source": "stata-19.5:error-command"
+  },
+  "507": {
+   "text": "name conflict",
+   "source": "stata-19.5:error-command"
+  },
+  "508": {
+   "text": "matrix has zero values on diagonal",
+   "source": "stata-19.5:error-command"
+  },
+  "509": {
+   "text": "matrix operators that return matrices not allowed in this context",
+   "source": "stata-19.5:error-command"
+  },
+  "601": {
+   "text": "file <name>.dta not found",
+   "source": "stata-19.5:command-trigger",
+   "generic": "file not found"
+  },
+  "602": {
+   "text": "file <name>.dta already exists",
+   "source": "stata-19.5:command-trigger",
+   "generic": "file already exists"
+  },
+  "603": {
+   "text": "file C:/<dir>/<name>.dta could not be opened",
+   "source": "stata-19.5:command-trigger",
+   "generic": "file could not be opened"
+  },
+  "604": {
+   "text": "log file already open",
+   "source": "stata-19.5:error-command"
+  },
+  "606": {
+   "text": "no log file open",
+   "source": "stata-19.5:error-command"
+  },
+  "607": {
+   "text": "no cmdlog file open",
+   "source": "stata-19.5:error-command"
+  },
+  "608": {
+   "text": "file is read-only; cannot be modified or erased",
+   "source": "stata-19.5:error-command"
+  },
+  "609": {
+   "text": "file xp format",
+   "source": "stata-19.5:error-command"
+  },
+  "610": {
+   "text": "file <name>.dta not Stata format",
+   "source": "stata-19.5:command-trigger",
+   "generic": "file not Stata format"
+  },
+  "611": {
+   "text": "record too long",
+   "source": "stata-19.5:error-command"
+  },
+  "612": {
+   "text": "unexpected end of file",
+   "source": "stata-19.5:error-command"
+  },
+  "613": {
+   "text": "file does not contain dictionary",
+   "source": "stata-19.5:error-command"
+  },
+  "614": {
+   "text": "dictionary invalid",
+   "source": "stata-19.5:error-command"
+  },
+  "615": {
+   "text": "cannot determine separator -- use tab or comma option",
+   "source": "stata-19.5:error-command"
+  },
+  "616": {
+   "text": "wrong number of values in checksum file",
+   "source": "stata-19.5:error-command"
+  },
+  "621": {
+   "text": "already preserved",
+   "source": "stata-19.5:command-trigger"
+  },
+  "622": {
+   "text": "nothing to restore",
+   "source": "stata-19.5:command-trigger"
+  },
+  "631": {
+   "text": "host not found",
+   "source": "stata-19.5:error-command"
+  },
+  "632": {
+   "text": "web filename not supported in this context",
+   "source": "stata-19.5:error-command"
+  },
+  "633": {
+   "text": "may not write files over internet",
+   "source": "stata-19.5:error-command"
+  },
+  "639": {
+   "text": "file transmission error (checksums do not match)",
+   "source": "stata-19.5:error-command"
+  },
+  "640": {
+   "text": "package file too long",
+   "source": "stata-19.5:error-command"
+  },
+  "641": {
+   "text": "package file invalid",
+   "source": "stata-19.5:error-command"
+  },
+  "651": {
+   "text": "may not seek past end of file",
+   "source": "stata-19.5:error-command"
+  },
+  "660": {
+   "text": "proxy host not found",
+   "source": "stata-19.5:error-command"
+  },
+  "662": {
+   "text": "proxy server refused request to send",
+   "source": "stata-19.5:error-command"
+  },
+  "663": {
+   "text": "remote connection to proxy failed",
+   "source": "stata-19.5:error-command"
+  },
+  "665": {
+   "text": "could not set socket nonblocking",
+   "source": "stata-19.5:error-command"
+  },
+  "667": {
+   "text": "wrong version winsock.dll",
+   "source": "stata-19.5:error-command"
+  },
+  "668": {
+   "text": "could not find a valid winsock.dll",
+   "source": "stata-19.5:error-command"
+  },
+  "669": {
+   "text": "invalid URL",
+   "source": "stata-19.5:error-command"
+  },
+  "670": {
+   "text": "invalid network port number",
+   "source": "stata-19.5:error-command"
+  },
+  "671": {
+   "text": "unknown network protocol",
+   "source": "stata-19.5:error-command"
+  },
+  "672": {
+   "text": "server refused to send file",
+   "source": "stata-19.5:error-command"
+  },
+  "673": {
+   "text": "authorization required by server",
+   "source": "stata-19.5:error-command"
+  },
+  "674": {
+   "text": "unexpected response from server",
+   "source": "stata-19.5:error-command"
+  },
+  "675": {
+   "text": "server reported server error",
+   "source": "stata-19.5:error-command"
+  },
+  "676": {
+   "text": "server refused request to send",
+   "source": "stata-19.5:error-command"
+  },
+  "677": {
+   "text": "remote connection failed",
+   "source": "stata-19.5:error-command"
+  },
+  "678": {
+   "text": "could not open local network socket",
+   "source": "stata-19.5:error-command"
+  },
+  "680": {
+   "text": "could not find a valid odbc32.dll",
+   "source": "stata-19.5:error-command"
+  },
+  "681": {
+   "text": "too many open files",
+   "source": "stata-19.5:error-command"
+  },
+  "682": {
+   "text": "could not connect to odbc dsn",
+   "source": "stata-19.5:error-command"
+  },
+  "683": {
+   "text": "could not fetch variable in odbc table",
+   "source": "stata-19.5:error-command"
+  },
+  "684": {
+   "text": "could not find a valid dlxapi32.dll",
+   "source": "stata-19.5:error-command"
+  },
+  "688": {
+   "text": "file is corrupt",
+   "source": "stata-19.5:error-command"
+  },
+  "691": {
+   "text": "I/O error",
+   "source": "stata-19.5:error-command"
+  },
+  "692": {
+   "text": "file I/O error on read",
+   "source": "stata-19.5:error-command"
+  },
+  "693": {
+   "text": "file I/O error on write",
+   "source": "stata-19.5:error-command"
+  },
+  "694": {
+   "text": "could not rename file",
+   "source": "stata-19.5:error-command"
+  },
+  "695": {
+   "text": "could not copy file",
+   "source": "stata-19.5:error-command"
+  },
+  "699": {
+   "text": "insufficient disk space",
+   "source": "stata-19.5:error-command"
+  },
+  "702": {
+   "text": "op. sys. refused to start new process",
+   "source": "stata-19.5:error-command"
+  },
+  "703": {
+   "text": "op. sys. refused to open pipe",
+   "source": "stata-19.5:error-command"
+  },
+  "791": {
+   "text": "system administrator will not allow you to change this setting",
+   "source": "stata-19.5:error-command"
+  },
+  "900": {
+   "text": "no room to add more variables",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 1
+  },
+  "901": {
+   "text": "no room to add more observations",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 1
+  },
+  "902": {
+   "text": "no room to add more variables because of width",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 1
+  },
+  "903": {
+   "text": "no room to promote variable (e.g., change int to float) because of width",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 1
+  },
+  "907": {
+   "text": "maxvar too small",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 3
+  },
+  "908": {
+   "text": "matsize too small",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 3
+  },
+  "909": {
+   "text": "op. sys. refuses to provide memory",
+   "source": "stata-19.5:error-command"
+  },
+  "910": {
+   "text": "value too small",
+   "source": "stata-19.5:error-command"
+  },
+  "912": {
+   "text": "value too large",
+   "source": "stata-19.5:error-command"
+  },
+  "913": {
+   "text": "op. sys. refuses to provide sufficient memory;",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 2
+  },
+  "914": {
+   "text": "op. sys. refused to allow Stata to open temporary file",
+   "source": "stata-19.5:error-command"
+  },
+  "915": {
+   "text": "unable to allocate matrix;",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 4
+  },
+  "916": {
+   "text": "unable to allocate matrix;",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 4
+  },
+  "920": {
+   "text": "macro substitution results in line that is too long",
+   "source": "stata-19.5:error-command"
+  },
+  "950": {
+   "text": "insufficient memory",
+   "source": "stata-19.5:error-command"
+  },
+  "1000": {
+   "text": "system limit exceeded - see manual",
+   "source": "stata-19.5:error-command"
+  },
+  "1001": {
+   "text": "too many values",
+   "source": "stata-19.5:error-command"
+  },
+  "1002": {
+   "text": "too many by variables",
+   "source": "stata-19.5:error-command"
+  },
+  "1003": {
+   "text": "too many options",
+   "source": "stata-19.5:error-command"
+  },
+  "1004": {
+   "text": "command too long",
+   "source": "stata-19.5:error-command"
+  },
+  "1400": {
+   "text": "numerical overflow",
+   "source": "stata-19.5:error-command"
+  },
+  "2000": {
+   "text": "no observations",
+   "source": "stata-19.5:command-trigger"
+  },
+  "2001": {
+   "text": "insufficient observations",
+   "source": "stata-19.5:command-trigger"
+  },
+  "2002": {
+   "text": "all observations predicted perfectly",
+   "source": "stata-19.5:error-command"
+  },
+  "3000": {
+   "text": "Mata compile-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3001": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3002": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3003": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3004": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3005": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3006": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3007": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3008": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3009": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3010": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3011": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3012": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3013": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3014": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3015": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3016": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3017": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3018": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3019": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3020": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3021": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3022": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3023": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3024": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3025": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3026": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3027": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3028": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3029": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3030": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3031": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3032": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3033": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3034": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3035": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3036": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3037": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3038": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3039": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3040": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3041": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3042": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3043": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3044": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3045": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3046": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3047": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3048": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3049": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3050": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3051": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3052": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3053": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3054": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3055": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3056": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3057": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3058": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3059": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3060": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3061": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3062": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3063": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3064": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3065": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3066": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3067": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3068": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3069": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3070": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3071": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3072": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3073": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3074": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3075": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3076": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3077": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3078": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3079": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3080": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3081": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3082": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3083": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3084": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3085": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3086": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3087": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3088": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3089": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3090": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3091": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3092": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3093": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3094": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3095": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3096": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3097": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3098": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3099": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3100": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3101": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3102": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3103": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3104": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3105": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3106": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3107": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3108": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3109": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3110": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3111": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3112": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3113": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3114": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3115": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3116": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3117": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3118": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3119": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3120": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3121": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3122": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3123": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3124": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3125": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3126": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3127": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3128": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3129": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3130": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3131": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3132": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3133": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3134": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3135": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3136": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3137": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3138": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3139": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3140": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3141": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3142": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3143": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3144": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3145": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3146": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3147": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3148": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3149": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3150": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3151": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3152": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3153": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3154": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3155": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3156": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3157": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3158": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3159": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3160": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3161": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3162": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3163": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3164": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3165": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3166": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3167": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3168": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3169": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3170": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3171": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3172": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3173": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3174": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3175": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3176": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3177": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3178": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3179": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3180": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3181": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3182": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3183": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3184": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3185": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3186": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3187": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3188": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3189": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3190": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3191": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3192": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3193": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3194": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3195": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3196": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3197": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3198": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3199": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3200": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3201": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3202": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3203": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3204": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3205": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3206": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3207": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3208": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3209": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3210": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3211": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3212": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3213": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3214": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3215": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3216": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3217": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3218": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3219": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3220": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3221": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3222": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3223": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3224": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3225": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3226": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3227": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3228": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3229": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3230": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3231": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3232": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3233": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3234": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3235": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3236": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3237": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3238": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3239": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3240": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3241": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3242": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3243": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3244": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3245": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3246": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3247": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3248": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3249": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3250": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3251": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3252": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3253": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3254": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3255": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3256": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3257": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3258": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3259": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3260": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3261": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3262": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3263": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3264": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3265": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3266": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3267": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3268": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3269": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3270": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3271": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3272": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3273": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3274": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3275": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3276": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3277": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3278": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3279": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3280": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3281": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3282": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3283": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3284": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3285": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3286": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3287": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3288": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3289": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3290": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3291": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3292": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3293": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3294": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3295": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3296": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3297": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3298": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3299": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3300": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3301": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3302": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3303": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3304": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3305": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3306": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3307": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3308": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3309": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3310": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3311": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3312": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3313": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3314": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3315": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3316": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3317": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3318": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3319": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3320": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3321": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3322": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3323": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3324": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3325": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3326": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3327": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3328": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3329": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3330": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3331": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3332": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3333": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3334": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3335": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3336": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3337": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3338": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3339": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3340": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3341": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3342": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3343": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3344": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3345": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3346": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3347": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3348": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3349": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3350": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3351": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3352": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3353": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3354": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3355": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3356": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3357": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3358": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3359": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3360": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3361": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3362": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3363": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3364": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3365": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3366": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3367": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3368": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3369": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3370": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3371": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3372": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3373": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3374": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3375": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3376": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3377": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3378": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3379": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3380": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3381": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3382": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3383": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3384": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3385": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3386": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3387": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3388": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3389": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3390": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3391": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3392": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3393": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3394": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3395": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3396": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3397": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3398": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3399": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3400": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3401": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3402": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3403": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3404": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3405": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3406": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3407": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3408": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3409": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3410": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3411": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3412": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3413": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3414": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3415": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3416": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3417": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3418": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3419": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3420": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3421": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3422": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3423": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3424": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3425": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3426": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3427": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3428": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3429": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3430": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3431": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3432": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3433": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3434": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3435": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3436": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3437": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3438": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3439": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3440": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3441": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3442": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3443": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3444": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3445": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3446": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3447": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3448": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3449": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3450": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3451": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3452": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3453": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3454": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3455": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3456": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3457": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3458": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3459": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3460": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3461": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3462": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3463": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3464": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3465": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3466": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3467": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3468": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3469": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3470": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3471": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3472": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3473": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3474": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3475": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3476": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3477": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3478": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3479": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3480": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3481": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3482": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3483": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3484": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3485": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3486": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3487": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3488": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3489": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3490": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3491": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3492": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3493": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3494": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3495": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3496": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3497": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3498": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3499": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3500": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3501": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3502": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3503": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3504": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3505": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3506": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3507": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3508": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3509": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3510": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3511": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3512": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3513": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3514": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3515": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3516": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3517": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3518": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3519": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3520": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3521": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3522": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3523": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3524": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3525": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3526": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3527": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3528": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3529": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3530": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3531": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3532": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3533": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3534": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3535": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3536": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3537": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3538": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3539": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3540": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3541": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3542": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3543": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3544": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3545": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3546": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3547": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3548": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3549": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3550": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3551": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3552": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3553": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3554": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3555": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3556": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3557": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3558": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3559": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3560": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3561": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3562": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3563": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3564": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3565": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3566": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3567": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3568": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3569": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3570": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3571": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3572": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3573": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3574": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3575": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3576": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3577": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3578": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3579": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3580": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3581": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3582": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3583": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3584": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3585": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3586": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3587": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3588": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3589": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3590": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3591": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3592": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3593": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3594": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3595": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3596": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3597": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3598": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3599": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3600": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3601": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3602": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3603": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3604": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3605": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3606": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3607": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3608": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3609": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3610": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3611": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3612": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3613": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3614": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3615": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3616": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3617": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3618": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3619": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3620": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3621": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3622": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3623": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3624": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3625": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3626": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3627": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3628": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3629": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3630": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3631": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3632": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3633": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3634": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3635": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3636": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3637": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3638": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3639": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3640": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3641": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3642": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3643": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3644": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3645": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3646": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3647": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3648": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3649": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3650": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3651": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3652": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3653": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3654": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3655": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3656": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3657": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3658": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3659": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3660": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3661": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3662": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3663": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3664": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3665": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3666": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3667": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3668": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3669": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3670": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3671": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3672": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3673": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3674": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3675": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3676": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3677": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3678": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3679": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3680": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3681": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3682": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3683": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3684": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3685": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3686": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3687": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3688": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3689": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3690": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3691": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3692": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3693": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3694": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3695": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3696": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3697": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3698": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3699": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3700": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3701": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3702": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3703": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3704": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3705": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3706": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3707": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3708": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3709": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3710": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3711": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3712": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3713": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3714": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3715": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3716": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3717": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3718": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3719": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3720": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3721": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3722": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3723": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3724": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3725": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3726": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3727": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3728": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3729": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3730": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3731": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3732": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3733": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3734": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3735": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3736": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3737": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3738": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3739": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3740": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3741": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3742": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3743": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3744": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3745": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3746": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3747": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3748": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3749": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3750": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3751": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3752": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3753": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3754": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3755": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3756": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3757": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3758": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3759": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3760": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3761": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3762": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3763": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3764": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3765": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3766": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3767": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3768": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3769": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3770": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3771": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3772": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3773": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3774": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3775": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3776": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3777": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3778": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3779": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3780": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3781": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3782": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3783": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3784": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3785": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3786": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3787": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3788": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3789": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3790": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3791": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3792": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3793": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3794": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3795": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3796": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3797": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3798": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3799": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3800": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3801": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3802": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3803": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3804": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3805": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3806": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3807": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3808": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3809": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3810": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3811": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3812": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3813": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3814": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3815": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3816": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3817": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3818": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3819": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3820": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3821": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3822": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3823": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3824": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3825": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3826": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3827": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3828": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3829": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3830": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3831": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3832": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3833": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3834": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3835": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3836": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3837": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3838": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3839": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3840": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3841": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3842": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3843": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3844": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3845": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3846": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3847": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3848": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3849": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3850": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3851": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3852": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3853": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3854": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3855": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3856": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3857": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3858": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3859": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3860": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3861": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3862": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3863": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3864": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3865": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3866": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3867": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3868": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3869": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3870": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3871": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3872": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3873": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3874": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3875": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3876": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3877": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3878": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3879": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3880": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3881": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3882": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3883": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3884": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3885": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3886": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3887": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3888": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3889": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3890": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3891": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3892": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3893": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3894": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3895": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3896": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3897": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3898": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3899": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3900": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3901": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3902": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3903": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3904": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3905": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3906": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3907": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3908": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3909": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3910": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3911": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3912": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3913": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3914": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3915": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3916": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3917": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3918": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3919": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3920": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3921": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3922": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3923": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3924": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3925": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3926": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3927": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3928": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3929": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3930": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3931": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3932": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3933": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3934": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3935": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3936": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3937": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3938": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3939": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3940": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3941": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3942": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3943": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3944": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3945": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3946": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3947": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3948": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3949": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3950": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3951": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3952": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3953": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3954": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3955": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3956": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3957": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3958": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3959": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3960": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3961": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3962": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3963": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3964": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3965": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3966": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3967": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3968": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3969": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3970": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3971": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3972": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3973": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3974": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3975": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3976": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3977": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3978": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3979": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3980": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3981": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3982": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3983": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3984": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3985": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3986": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3987": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3988": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3989": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3990": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3991": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3992": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3993": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3994": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3995": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3996": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3997": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3998": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "3999": {
+   "text": "Mata run-time error",
+   "source": "stata-19.5:error-command"
+  },
+  "4000": {
+   "text": "class system limit exceeded",
+   "source": "stata-19.5:error-command"
+  },
+  "4001": {
+   "text": "class-system reference out of range",
+   "source": "stata-19.5:error-command"
+  },
+  "4002": {
+   "text": "class-system reference not defined",
+   "source": "stata-19.5:error-command"
+  },
+  "4003": {
+   "text": "invalid class-system reference",
+   "source": "stata-19.5:error-command"
+  },
+  "4005": {
+   "text": "invalid type usage",
+   "source": "stata-19.5:error-command"
+  },
+  "4006": {
+   "text": "invalid attribute type",
+   "source": "stata-19.5:error-command"
+  },
+  "4007": {
+   "text": "no current class context",
+   "source": "stata-19.5:error-command"
+  },
+  "4008": {
+   "text": "too many class keys",
+   "source": "stata-19.5:error-command"
+  },
+  "4009": {
+   "text": "invalid class reference or reference found where not expected",
+   "source": "stata-19.5:error-command"
+  },
+  "4010": {
+   "text": "class key not found",
+   "source": "stata-19.5:error-command"
+  },
+  "4011": {
+   "text": "name too long",
+   "source": "stata-19.5:error-command"
+  },
+  "4012": {
+   "text": "name not found",
+   "source": "stata-19.5:error-command"
+  },
+  "4013": {
+   "text": "not a class type",
+   "source": "stata-19.5:error-command"
+  },
+  "4014": {
+   "text": "not a class",
+   "source": "stata-19.5:error-command"
+  },
+  "4015": {
+   "text": "class types are not the same",
+   "source": "stata-19.5:error-command"
+  },
+  "4017": {
+   "text": "name already declared in current class",
+   "source": "stata-19.5:error-command"
+  },
+  "4018": {
+   "text": "class type not found",
+   "source": "stata-19.5:error-command"
+  },
+  "4019": {
+   "text": "source and target types are not compatible",
+   "source": "stata-19.5:error-command"
+  },
+  "4020": {
+   "text": "not an array",
+   "source": "stata-19.5:error-command"
+  },
+  "4022": {
+   "text": "no active class",
+   "source": "stata-19.5:error-command"
+  },
+  "4023": {
+   "text": "class member function not found",
+   "source": "stata-19.5:error-command"
+  },
+  "4024": {
+   "text": "creators new, clone, clone1, copy, and reference may not be combined",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 1
+  },
+  "4025": {
+   "text": "clone creator may only be used with classes",
+   "source": "stata-19.5:error-command"
+  },
+  "4026": {
+   "text": "rvalue invalid",
+   "source": "stata-19.5:error-command"
+  },
+  "4027": {
+   "text": "incompatible types",
+   "source": "stata-19.5:error-command"
+  },
+  "4028": {
+   "text": "target of assignment no longer available",
+   "source": "stata-19.5:error-command"
+  },
+  "4029": {
+   "text": "invalid array reference",
+   "source": "stata-19.5:error-command"
+  },
+  "4030": {
+   "text": "invalid array initializer",
+   "source": "stata-19.5:error-command"
+  },
+  "4031": {
+   "text": "already exists",
+   "source": "stata-19.5:error-command"
+  },
+  "4050": {
+   "text": "class system failure",
+   "source": "stata-19.5:error-command"
+  },
+  "4051": {
+   "text": "class context out of range",
+   "source": "stata-19.5:error-command"
+  },
+  "4052": {
+   "text": "class element too large to store",
+   "source": "stata-19.5:error-command"
+  },
+  "4099": {
+   "text": "system failure in .class files",
+   "source": "stata-19.5:error-command"
+  },
+  "5000": {
+   "text": "Java not available on this platform",
+   "source": "stata-19.5:error-command"
+  },
+  "5001": {
+   "text": "unable to allocate memory for Java virtual machine",
+   "source": "stata-19.5:error-command"
+  },
+  "5002": {
+   "text": "failure to dynamically load Java runtime library",
+   "source": "stata-19.5:error-command"
+  },
+  "5003": {
+   "text": "unable to create Java virtual machine",
+   "source": "stata-19.5:error-command"
+  },
+  "5004": {
+   "text": "Java installation not found",
+   "source": "stata-19.5:error-command"
+  },
+  "5005": {
+   "text": "unable to attach to existing Java virtual machine",
+   "source": "stata-19.5:error-command"
+  },
+  "5006": {
+   "text": "Java class not specified",
+   "source": "stata-19.5:error-command"
+  },
+  "5007": {
+   "text": "Java method not specified",
+   "source": "stata-19.5:error-command"
+  },
+  "5008": {
+   "text": "Java virtual machine is not available at this time",
+   "source": "stata-19.5:error-command"
+  },
+  "5009": {
+   "text": "error finding Java/JShell integration classes",
+   "source": "stata-19.5:error-command",
+   "extra_lines": 1
+  },
+  "5051": {
+   "text": "value null where non-null value expected",
+   "source": "stata-19.5:error-command"
+  },
+  "5100": {
+   "text": "a Java runtime exception occurred",
+   "source": "stata-19.5:error-command"
+  },
+  "5101": {
+   "text": "a general error occurred while executing Java code",
+   "source": "stata-19.5:error-command"
+  },
+  "6101": {
+   "text": "time-series operators not allowed",
+   "source": "stata-19.5:error-command"
+  },
+  "6102": {
+   "text": "factor-variable operators not allowed",
+   "source": "stata-19.5:error-command"
+  },
+  "6103": {
+   "text": "interaction operators not allowed",
+   "source": "stata-19.5:error-command"
+  },
+  "6104": {
+   "text": "factor-variable and time-series operators not allowed",
+   "source": "stata-19.5:error-command"
+  },
+  "6105": {
+   "text": "o. operator not allowed",
+   "source": "stata-19.5:error-command"
+  },
+  "6106": {
+   "text": "iweights not allowed with robust",
+   "source": "stata-19.5:error-command"
+  },
+  "7196": {
+   "text": "invalid attempt to modify label",
+   "source": "stata-19.5:error-command"
+  },
+  "7197": {
+   "text": "invalid file specification",
+   "source": "stata-19.5:error-command"
+  },
+  "7198": {
+   "text": "multiple by's not allowed",
+   "source": "stata-19.5:error-command"
+  },
+  "8001": {
+   "text": "irrelevant under Windows",
+   "source": "stata-19.5:error-command"
+  },
+  "8002": {
+   "text": "request ignored because of batch mode",
+   "source": "stata-19.5:error-command"
+  },
+  "8003": {
+   "text": "request ignored because this feature has been disabled by your site",
+   "source": "stata-19.5:error-command"
+  },
+  "9000": {
+   "text": "system failure",
+   "source": "stata-19.5:error-command"
+  },
+  "9": {
+   "text": "assertion is false",
+   "source": "stata-19.5:command-trigger"
+  }
+ },
+ "counts": {
+  "codes": 1243,
+  "probed": 9999,
+  "with_generic_message": 1242,
+  "command_triggered": 24
+ },
+ "coverage": {
+  "probed_range": [
+   1,
+   9999
+  ],
+  "notes": [
+   "Codes with an empty message under `error N` are omitted, not guessed.",
+   "For parameterised codes a command-trigger entry overrides the generic `error N` text; `generic` keeps the fallback for comparison.",
+   "<name> stands for the variable/command/matrix/file name Stata substitutes at run time.",
+   "Codes above 9999 were probed once and carry no message; the sweep therefore stops there.",
+   "Long messages (r(900)-r(916)) are truncated to their first line; `extra_lines` records how many lines were dropped."
+  ]
+ }
+}

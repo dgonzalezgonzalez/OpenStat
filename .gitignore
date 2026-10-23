@@ -13,6 +13,8 @@ dist/
 .coverage
 qa/latest-report.json
 qa/online-report.json
+# Generated desktop inventory (9 MB, rebuilt by `qa/ui_manifest.py --build`).
+qa/ui_manifest.json
 openstat-output/
 qa/replication/_packages/
 qa/replication/_artifacts/
