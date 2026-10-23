@@ -7,12 +7,14 @@ memory and sort above every finite number, matching Stata.
 from __future__ import annotations
 
 import re
+import unicodedata
 
 import numpy as np
 import pandas as pd
 
-from .formats import format_value
+from .formats import FormatError, format_value
 from .lazy import lazy_module
+from .parser import quoted_end
 from .parser_expr import (Binary, Call, Literal, Name, StringLiteral, Subscript,
                           Unary, parse_expression)
 
@@ -50,6 +52,23 @@ def _ordered(value):
         return value
 
 
+def _double(value):
+    """Promote a numeric value to the precision expressions are evaluated in.
+
+    Stata evaluates every numeric expression in double precision: a ``float``
+    variable is read as the double equivalent of its stored value, the
+    arithmetic happens in double, and only the assignment truncates back to
+    the variable's storage type.  Keeping the arithmetic in single precision
+    here would change the low bits of a ``float`` result.
+    """
+    dtype = getattr(value, "dtype", None)
+    if dtype is None:
+        return float(value) if isinstance(value, np.float32) else value
+    if isinstance(dtype, np.dtype) and dtype.kind == "f" and dtype != np.dtype("float64"):
+        return value.astype(np.float64)
+    return value
+
+
 def truth(value):
     """Stata treats missing as true in a logical context."""
     if isinstance(value, pd.Series):
@@ -65,7 +84,39 @@ def _as_text(value) -> str:
     return str(value)
 
 
+def _regex_engine(unicode_mode: bool):
+    """Return the module that implements Stata's regular expressions.
+
+    The Unicode-aware functions need the third-party ``regex`` module, which
+    understands the Unicode property escapes Stata's users write; the plain
+    ones use the standard library.
+    """
+    if not unicode_mode:
+        return re
+    try:
+        import regex
+    except ImportError:  # pragma: no cover - optional dependency
+        return re
+    return regex
+
+
+def _check_pattern(engine, pattern):
+    """Compile a pattern, reporting a bad one as an expression error."""
+    pattern = str(pattern)
+    try:
+        engine.compile(pattern)
+    except Exception as error:  # the regex modules raise their own error type
+        raise ExpressionError(f"invalid regular expression: {error}") from error
+    return pattern
+
+
 class Evaluator:
+    #: Stata's factor-variable coefficient name: an optional base level, an
+    #: optional ``b``/``o``/``n`` operator, and its ``name`` or ``c.name``,
+    #: with interaction terms joined by ``#``.  ``1.g``, ``2o.g``, ``1b.g``,
+    #: ``c.x`` and ``1.g#c.x`` all match; anything else does not.
+    _COEF_NAME = r"[0-9]*(?:[bon]{1,2})?\.?(?:c\.)?[A-Za-z_]\w*(?:#[0-9]*(?:[bon]{1,2})?\.?(?:c\.)?[A-Za-z_]\w*)*"
+
     def __init__(self, engine):
         self.engine = engine
 
@@ -96,9 +147,77 @@ class Evaluator:
         return np.nan
 
     # ------------------------------------------------------------------
+    # String and regular-expression helpers
+    # ------------------------------------------------------------------
+    @staticmethod
+    def string_map(value, function):
+        """Apply ``function`` to a string, a scalar or every element of a series.
+
+        A missing value becomes the empty string, the way Stata's string
+        functions treat it.
+        """
+        if isinstance(value, str):
+            return function(value)
+        if isinstance(value, pd.Series):
+            return value.fillna("").map(function)
+        if np.isscalar(value):
+            return function("" if pd.isna(value) else str(value))
+        return pd.Series(value).fillna("").map(function)
+
+    def regex_replace(self, value, pattern, replacement,
+                      unicode_mode: bool = False, all_matches: bool = False):
+        """Stata's ``regexr()``: replace the first match, or all of them."""
+        engine = _regex_engine(unicode_mode)
+        pattern = _check_pattern(engine, pattern)
+        replacement = "" if replacement is None else str(replacement)
+        count = 0 if all_matches else 1
+        return self.string_map(
+            value, lambda text: engine.sub(pattern, replacement, text, count=count))
+
+    def regex_match(self, value, pattern, unicode_mode: bool = False):
+        """Stata's ``regexm()``: remember the match for ``regexs()``."""
+        engine = _regex_engine(unicode_mode)
+        pattern = _check_pattern(engine, pattern)
+        if isinstance(value, str):
+            match = engine.search(pattern, value)
+            self.engine._regex_matches = match
+            return bool(match)
+        if isinstance(value, pd.Series):
+            matches = value.fillna("").map(lambda text: engine.search(pattern, str(text)))
+            self.engine._regex_matches = matches
+            return matches.map(bool).astype(float)
+        if np.isscalar(value):
+            text = "" if pd.isna(value) else str(value)
+            match = engine.search(pattern, text)
+            self.engine._regex_matches = match
+            return bool(match)
+        matches = pd.Series(value).fillna("").map(lambda text: engine.search(pattern, str(text)))
+        self.engine._regex_matches = matches
+        return matches.map(bool).astype(float)
+
+    def regex_group(self, index):
+        """Stata's ``regexs(n)``: the n-th group of the last match."""
+        matches = getattr(self.engine, "_regex_matches", None)
+
+        def group(match):
+            if match is None:
+                return ""
+            try:
+                return match.group(int(index)) or ""
+            except (IndexError, re.error):
+                return ""
+
+        if isinstance(matches, pd.Series):
+            return matches.map(group)
+        return group(matches)
+
+    # ------------------------------------------------------------------
     # Entry point
     # ------------------------------------------------------------------
-    def evaluate(self, expression: str):
+    def evaluate(self, expression):
+        """Evaluate one expression, or every expression of a list."""
+        if isinstance(expression, (list, tuple)):
+            return [self.evaluate(item) for item in expression]
         text = expression.strip()
         if not text:
             raise ExpressionError("empty expression")
@@ -115,20 +234,37 @@ class Evaluator:
     def _rewrite(self, text: str) -> str:
         """Translate Stata-only spellings into the parser's vocabulary."""
         strings: list[str] = []
-
-        def protect(match):
-            strings.append(match[0])
-            return f"__string_{len(strings) - 1}"
-
-        text = re.sub(r'"[^"\n]*"', protect, text)
+        text = self._protect_strings(text, strings)
         text = re.sub(r"\b(r|e|c)\(([A-Za-z_][\w]*)\)", r'__result("\1","\2")', text)
-        text = re.sub(r"_(b|se)\[([\w.]+)\]", r'__coef("\1","\2")', text)
+        text = re.sub(r"_(b|se)\[(" + self._COEF_NAME + r")\]", r'__coef("\1","\2")', text)
         text = text.replace("~=", "!=")
         text = text.replace("&&", "&").replace("||", "|")
         text = text.replace("^", "**") if False else text
         text = re.sub(r"(?<![\w.])\.(?![\w.])", "__missing", text)
         self.strings = strings
         return text
+
+    def _protect_strings(self, text: str, strings: list) -> str:
+        """Replace string literals with placeholders, compound quotes included."""
+        output: list[str] = []
+        index = 0
+        while index < len(text):
+            literal = text.startswith('`"', index) or text[index] == '"'
+            end = None
+            if literal:
+                try:
+                    end = quoted_end(text, index)
+                except ValueError:
+                    end = None
+            if end is not None:
+                raw = text[index:end]
+                strings.append(raw[2:-2] if raw.startswith('`"') else raw[1:-1])
+                output.append(f"__string_{len(strings) - 1}")
+                index = end
+                continue
+            output.append(text[index])
+            index += 1
+        return "".join(output)
 
     # ------------------------------------------------------------------
     # Tree walking
@@ -153,7 +289,7 @@ class Evaluator:
     def resolve_name(self, name):
         e = self.engine
         if name.startswith("__string_"):
-            return self.strings[int(name.rsplit("_", 1)[1])][1:-1]
+            return self.strings[int(name.rsplit("_", 1)[1])]
         if name == "__missing":
             return np.nan
         if name == "_n":
@@ -172,8 +308,8 @@ class Evaluator:
             raise ExpressionError(f"{name} requires a coefficient subscript")
         if name in e.data:
             if getattr(e, "_observation", None) is not None:
-                return e.data[name].iloc[e._observation]
-            return e.data[name]
+                return _double(e.data[name].iloc[e._observation])
+            return _double(e.data[name])
         if name in e.scalars:
             return e.scalars[name]
         if name in e.matrices:
@@ -249,10 +385,10 @@ class Evaluator:
                     position = int(index)
                 except (TypeError, ValueError):
                     return np.nan
-                return array.iloc[position - 1] if 1 <= position <= len(array) else np.nan
+                return _double(array.iloc[position - 1]) if 1 <= position <= len(array) else np.nan
             positions = np.asarray(index, dtype=int) - 1
-            return pd.Series([array.iloc[i] if 0 <= i < len(array) else np.nan
-                              for i in positions], index=e.data.index)
+            return _double(pd.Series([array.iloc[i] if 0 <= i < len(array) else np.nan
+                                      for i in positions], index=e.data.index))
         if isinstance(index, tuple):
             return array[tuple(int(i) - 1 for i in index)]
         if len(node.indices) > 1:
@@ -339,6 +475,7 @@ class Evaluator:
             "real": lambda x: pd.to_numeric(x, errors="coerce"),
             "string": self.string_function,
             "strlen": self.strlen,
+            "length": self.strlen,
             "lower": lambda x: x.str.lower() if isinstance(x, pd.Series) else str(x).lower(),
             "upper": lambda x: x.str.upper() if isinstance(x, pd.Series) else str(x).upper(),
             "proper": lambda x: x.str.title() if isinstance(x, pd.Series) else str(x).title(),
@@ -347,21 +484,34 @@ class Evaluator:
             "rtrim": lambda x: x.str.rstrip() if isinstance(x, pd.Series) else str(x).rstrip(),
             "substr": self.substr,
             "word": self.word,
-            "wordcount": lambda x: len(str(x).split()),
-            "strpos": lambda x, y: str(x).find(str(y)) + 1,
-            "subinstr": lambda x, a, b: str(x).replace(str(a), str(b)),
-            "regexm": lambda x, y: int(bool(re.search(y, str(x)))),
-            "regexr": lambda x, y: re.sub(y, "", str(x)),
-            "regexs": lambda x, y: (re.search(y, str(x)) or [None])[0] or "",
-            "abbrev": lambda x, n: str(x)[:max(int(n), 1)],
+            "wordcount": lambda x: self.string_map(x, lambda text: len(text.split())),
+            "strpos": self.strpos,
+            "ustrpos": self.strpos,
+            "subinstr": self.subinstr,
+            "regexm": self.regex_match,
+            "regexra": lambda x, p, r: self.regex_replace(x, p, r, all_matches=True),
+            "regexr": self.regex_replace,
+            "regexs": self.regex_group,
+            "ustrregexm": lambda x, p: self.regex_match(x, p, unicode_mode=True),
+            "ustrregexra": lambda x, p, r: self.regex_replace(x, p, r, unicode_mode=True,
+                                                              all_matches=True),
+            "ustrregexrf": lambda x, p, r: self.regex_replace(x, p, r, unicode_mode=True),
+            "abbrev": self.abbrev,
             "plural": lambda n, s: s if int(n) == 1 else s + "s",
             "pluralize": lambda n, s: s if int(n) == 1 else s + "s",
             "reverse": lambda x: str(x)[::-1],
-            "itrim": lambda x: " ".join(str(x).split()),
+            "itrim": lambda x: self.string_map(x, lambda text: " ".join(text.split())),
             "ascii": lambda x: ord(str(x)[0]) if str(x) else 0,
             "char": lambda x: chr(int(x)),
-            "ustrlen": lambda x: len(str(x)),
-            "ustrpos": lambda x, y: str(x).find(str(y)) + 1,
+            "uchar": lambda x: chr(int(x)),
+            "strlower": lambda x: self.string_map(x, str.lower),
+            "strupper": lambda x: self.string_map(x, str.upper),
+            "ustrlower": lambda x: self.string_map(x, str.lower),
+            "ustrupper": lambda x: self.string_map(x, str.upper),
+            "strtrim": lambda x: self.string_map(x, lambda text: text.strip(" ")),
+            "ustrtrim": lambda x: self.string_map(x, str.strip),
+            "ustrnormalize": self.ustrnormalize,
+            "ustrlen": lambda x: self.string_map(x, len),
             "usubstr": self.substr,
             "uupper": lambda x: x.str.upper() if isinstance(x, pd.Series) else str(x).upper(),
             "ulower": lambda x: x.str.lower() if isinstance(x, pd.Series) else str(x).lower(),
@@ -470,14 +620,65 @@ class Evaluator:
         return result
 
     def string_function(self, x, fmt="%12.0g"):
+        """Stata's ``string()``: render a number with a display format.
+
+        The width of the format does not pad the result: Stata keeps the
+        digits only.
+        """
+        if not isinstance(fmt, str):
+            raise ExpressionError("string() format must be a string")
+
+        def render(value):
+            try:
+                return format_value(value, fmt).strip()
+            except FormatError as error:
+                raise ExpressionError(str(error)) from error
+
         if isinstance(x, pd.Series):
-            return x.map(lambda value: format_value(value, fmt))
-        return format_value(x, fmt)
+            return x.map(render)
+        return render(x)
 
     def strlen(self, x):
-        if isinstance(x, pd.Series):
-            return x.astype(str).str.len()
-        return len(str(x))
+        """Stata's ``strlen()``: the number of bytes the string occupies."""
+        return self.string_map(x, lambda text: len(text.encode("utf-8")))
+
+    def strpos(self, value, sub):
+        """Stata's ``strpos()``: the position of ``sub``, zero when absent."""
+        return self.string_map(value, lambda text: text.find(str(sub)) + 1)
+
+    def subinstr(self, value, old, new, count=None):
+        """Stata's ``subinstr()``: replace ``old`` with ``new``.
+
+        A missing ``count`` replaces every occurrence, as in Stata.
+        """
+        old, new = str(old), str(new)
+        if count is None or (np.isscalar(count) and pd.isna(count)):
+            def replace(text):
+                return text.replace(old, new)
+        else:
+            def replace(text):
+                return text.replace(old, new, int(count))
+        return self.string_map(value, replace)
+
+    def abbrev(self, value, length):
+        """Stata's ``abbrev()``: shorten a string to ``length`` characters."""
+        length = int(length)
+
+        def shorten(text):
+            if len(text) <= length:
+                return text
+            if length <= 1:
+                return text[:length]
+            return text[:length - 2] + "~" + text[-1:]
+
+        return self.string_map(value, shorten)
+
+    def ustrnormalize(self, value, mode):
+        """Stata's ``ustrnormalize()``: Unicode normalisation."""
+        form = str(mode).upper()
+        if form not in {"NFC", "NFD", "NFKC", "NFKD"}:
+            raise ExpressionError(f"invalid normalization form {mode}")
+        return self.string_map(value, lambda text: unicodedata.normalize(form, text))
 
     def substr(self, x, start, length):
         start = int(start)
@@ -487,9 +688,12 @@ class Evaluator:
         text = str(x)
         return text[max(start - 1, 0):max(start - 1, 0) + max(length, 0)]
 
-    def word(self, x, index):
-        words = str(x).split()
+    def word(self, value, index):
+        """Stata's ``word()``: the n-th whitespace-separated word."""
         position = int(index)
-        if 1 <= position <= len(words):
-            return words[position - 1]
-        return ""
+
+        def pick(text):
+            words = text.split()
+            return words[position - 1] if 1 <= position <= len(words) else ""
+
+        return self.string_map(value, pick)

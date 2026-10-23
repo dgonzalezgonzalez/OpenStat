@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from .parser import split_outside
-from .storage import DEFAULT_FORMAT, DEFAULT_TYPE, INTEGER_RANGE
+from .storage import INTEGER_RANGE
 
 
 class GenerationCommands:
@@ -85,16 +85,32 @@ class GenerationCommands:
                 truncated = np.trunc(numeric)
                 numeric = truncated.where(truncated.between(low, high))
             value = numeric.astype(np.float32 if storage == "float" else np.float64)
-        if command != "replace":
-            self.data[name] = "" if value.dtype == object or pd.api.types.is_string_dtype(value.dtype) else np.nan
+        if command != "replace" and name not in self.data:
+            # A new variable holds its values in its own storage type from the
+            # moment it exists, so a float variable keeps the single-precision
+            # rendering of every value assigned to it.
+            self.data[name] = self._empty_column(storage, value)
+        if pd.api.types.is_float_dtype(self.data[name].dtype) and value.dtype != self.data[name].dtype:
+            # Assignment into an existing variable quantises to the variable's
+            # type: ``replace`` on a float variable stores the float32 value.
+            value = value.astype(self.data[name].dtype)
         try:
             self.data.loc[mask, name] = value.loc[mask]
         except (ValueError, TypeError) as ex:
             raise StataError(f"type mismatch: {ex}", 109) from ex
         if storage:
+            # ``generate`` records the storage type but no explicit display
+            # format: Stata shows the type's default format instead.
             self.storage_types[name] = storage
-            self.formats[name] = (DEFAULT_FORMAT[storage] if storage in DEFAULT_FORMAT
-                                  else "%9s")
+
+    def _empty_column(self, storage, value):
+        """Allocate a new variable's column already in its storage dtype."""
+        text = (storage or "").startswith("str") or value.dtype == object or \
+            pd.api.types.is_string_dtype(value.dtype)
+        if text:
+            return pd.Series("", index=self.data.index, dtype=object)
+        dtype = np.float32 if storage == "float" else np.float64
+        return pd.Series(np.full(len(self.data), np.nan, dtype=dtype), index=self.data.index)
 
     def _egen_value(self, name, expression, options, mask):
         from .engine import StataError

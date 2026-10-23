@@ -15,6 +15,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
+from .parser import quoted_end
+
 
 class ExpressionError(ValueError):
     pass
@@ -46,6 +48,13 @@ def tokenize(text: str) -> list[Token]:
     tokens: list[Token] = []
     index = 0
     while index < len(text):
+        if text.startswith('`"', index):
+            # A compound double-quoted string is a string literal whose
+            # content may itself contain ordinary double quotes.
+            end = quoted_end(text, index)
+            tokens.append(Token("string", '"' + text[index + 2:end - 2] + '"', index))
+            index = end
+            continue
         match = TOKEN_PATTERN.match(text, index)
         if not match:
             raise ExpressionError(f"unexpected character {text[index]!r} in expression")

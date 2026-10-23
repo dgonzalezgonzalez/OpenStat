@@ -59,6 +59,16 @@ EXTENDED_FUNCTIONS = {
 }
 
 
+def _compound_end(text: str, start: int) -> int | None:
+    """Exclusive end of the compound-quoted run at ``start``, or ``None``."""
+    from .parser import quoted_end
+
+    try:
+        return quoted_end(text, start)
+    except ValueError:
+        return None
+
+
 def expand_macros(text: str, locals: dict, globals: dict, depth: int = 0,
                   returns: dict | None = None, eclass: dict | None = None,
                   cclass: dict | None = None) -> str:
@@ -82,15 +92,20 @@ def expand_macros(text: str, locals: dict, globals: dict, depth: int = 0,
             index += 1
             continue
         if text.startswith('`"', index):
-            end = text.find('"\'', index + 2)
-            if end < 0:
+            end = _compound_end(text, index)
+            if end is None:
                 out += text[index:]
                 break
-            out += text[index:end + 2]
-            index = end + 2
+            # Macros inside compound quotes *are* expanded; the quotes
+            # protect the result from being re-read as do-file syntax.
+            inner = text[index + 2:end - 2]
+            out += '`"' + expand_macros(inner, locals, globals, depth + 1) + '"\''
+            index = end
             continue
         if char == "`":
-            match = re.match(r"`([A-Za-z_]\w*)(?:\(([A-Za-z_]\w*)\))?'", text[index:])
+            # Stata's programmer arguments are `` `0' `` to `` `9' ``, so a
+            # local name may be all digits as well as a normal identifier.
+            match = re.match(r"`([A-Za-z_]\w*|\d+)(?:\(([A-Za-z_]\w*)\))?'", text[index:])
             if match:
                 name = match[1]
                 if name in {"r", "e", "c"} and match[2] is not None:

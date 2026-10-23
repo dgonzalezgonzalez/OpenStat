@@ -18,9 +18,21 @@ from __future__ import annotations
 
 import re
 
+import pandas as pd
+
 
 class SyntaxError_(ValueError):
-    pass
+    """A ``syntax`` failure.
+
+    ``rc`` carries Stata's return code when the failure is one Stata reports
+    with a specific code (a missing variable is ``r(111)``, a string where a
+    number is required is ``r(109)``).  The engine falls back to ``r(197)``,
+    Stata's generic syntax-error code, when it is absent.
+    """
+
+    def __init__(self, message, rc=None):
+        super().__init__(message)
+        self.rc = rc
 
 
 # ----------------------------------------------------------------------
@@ -140,8 +152,24 @@ def _parse_elements(spec: str) -> list[dict]:
             continue
         match = re.match(r"[A-Za-z_]\w*", spec[index:])
         if match:
-            elements.append({"optional": False, "name": match[0].lower(), "body": match[0]})
+            word = match[0]
             index += match.end()
+            body = word
+            # A parenthesised group that follows the word immediately is a
+            # qualifier on the same element, as in ``varname(numeric)``.
+            if index < length and spec[index] == "(":
+                depth, start = 1, index
+                index += 1
+                while index < length and depth:
+                    if spec[index] == "(":
+                        depth += 1
+                    elif spec[index] == ")":
+                        depth -= 1
+                    index += 1
+                if depth:
+                    raise SyntaxError_("unbalanced brackets in syntax specification")
+                body = word + spec[start:index]
+            elements.append({"optional": False, "name": word.lower(), "body": body})
             continue
         index += 1
     return elements
@@ -338,6 +366,37 @@ class SyntaxCommand:
             raise SyntaxError_(f"option {name} is ambiguous")
         return None
 
+    # -- varlist validation -------------------------------------------
+    def _checked_list(self, text: str, body: str) -> str:
+        """Validate a varlist against the element's ``(qualifier)``.
+
+        ``syntax varname(numeric)`` and friends check the names before the
+        program body runs, so a bad varlist is a ``syntax`` failure rather
+        than a failure deep inside the program.
+        """
+        qualifier = body[body.index("(") + 1:-1] if "(" in body else ""
+        words = qualifier.lower().replace(",", " ").split()
+        names = text.split()
+        numeric = "numeric" in words or "num" in words
+        string = "string" in words or "str" in words
+        created = "new" in words
+        for word in words:
+            if word.startswith("min=") and len(names) < int(word[4:]):
+                raise SyntaxError_(f"too few variables specified", 102)
+            if word.startswith("max=") and len(names) > int(word[4:]):
+                raise SyntaxError_("too many variables specified", 103)
+        for name in names:
+            if name not in self.engine.data:
+                if created:
+                    continue
+                raise SyntaxError_(f"{name} not found", 111)
+            is_numeric = pd.api.types.is_numeric_dtype(self.engine.data[name])
+            if numeric and not is_numeric:
+                raise SyntaxError_(f"{name} is not numeric", 109)
+            if string and is_numeric:
+                raise SyntaxError_(f"{name} is not a string", 109)
+        return text
+
     # -- main ----------------------------------------------------------
     def run(self, argument_text: str) -> dict:
         engine = self.engine
@@ -365,10 +424,14 @@ class SyntaxCommand:
             if name in {"if", "in"}:
                 continue
             body = element["body"]
-            if name in {"varlist", "newvarlist", "namelist"}:
+            if name in {"varlist", "varname", "newvarlist", "newvarname", "namelist"}:
                 if not element["optional"] and not remaining:
                     raise SyntaxError_(f"{name} required")
-                results[name] = remaining
+                # ``syntax varname`` and ``syntax varlist`` publish the same
+                # local macro, and both honour the parenthesised qualifier.
+                target = "namelist" if name == "namelist" else "varlist"
+                results[target] = self._checked_list(remaining, body) \
+                    if target == "varlist" else remaining
                 remaining = ""
             elif name == "anything":
                 if not element["optional"] and not remaining:

@@ -25,13 +25,18 @@ from .expression import (Evaluator, ExpressionError, NotFoundError, UndefinedCVa
                          truth)
 from .cclass import build_cclass
 from .duplicates import DuplicatesCommands
+from .errors import StataError
+from .extended_data import ExtendedDataCommands
+from .output import OutputCommands
 from .panel import PanelCommands
+from .programming import ProgrammingCommands
 from .rng import RandomGenerator
-from .formats import format_value
+from .formats import format_value, is_text_format
 from .macros import MacroError, apply_macro_function, expand_macros
 from .mata import Mata, MataError
 from .packages import PackageError, PackageManager
-from .parser import Statement, lex, split_outside, tokens, unquote
+from .parser import (Statement, lex, parse_options, quoted_end, split_outside,
+                     tokens, unquote)
 from .statistics import StatisticalCommands
 from .graphics import GraphicsCommands
 from .data_commands import IOCommands
@@ -40,14 +45,6 @@ from .metadata import MetadataCommands
 from .program_support import ProgramSupportCommands
 from .storage import DEFAULT_FORMAT, DEFAULT_TYPE, READSTAT_TYPE
 from .syntax import SyntaxCommand, SyntaxError_
-
-
-class StataError(Exception):
-    def __init__(self, message, rc=198, line=None):
-        super().__init__(message)
-        self.rc, self.line = rc, line
-        #: Set when the message has already been written to the transcript.
-        self.reported = False
 
 
 class _ExitFlow(Exception):
@@ -75,10 +72,12 @@ ALIASES = {
     "markout": "markout", "gettok": "gettoken", "ereturn": "ereturn",
     "scalar": "scalar", "matrix": "matrix", "file": "file", "log": "log",
     "ml": "ml", "svy": "svy", "xi": "xi", "mata": "mata", "temp": "tempfile",
-    "tl": "twoway", "tw": "twoway", "gr": "graph", "reghdfe": "regress",
+    "tl": "twoway", "tw": "twoway", "gr": "graph",
     "marksample": "marksample", "mark": "mark", "tempvar": "tempvar",
     "tempname": "tempname", "tempfile": "tempfile", "args": "args",
     "gettoken": "gettoken", "syntax": "syntax", "ereturn": "ereturn",
+    "forv": "forvalues", "forva": "forvalues", "forval": "forvalues",
+    "forea": "foreach", "foreac": "foreach",
 }
 
 # Options that may follow ``program name``.  Real ado files use all of these.
@@ -91,7 +90,8 @@ PROGRAM_OPTIONS = {
 
 class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands,
             GenerationCommands, ProgramSupportCommands, PanelCommands,
-            DuplicatesCommands):
+            DuplicatesCommands, ProgrammingCommands, ExtendedDataCommands,
+            OutputCommands):
     def __init__(self, cwd: Path | str | None = None, ado_dir: Path | str | None = None):
         self.cwd = Path(cwd or Path.cwd()).resolve()
         self.data = pd.DataFrame()
@@ -126,6 +126,11 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         self._steps = 0
         self._output = []
         self._quiet = 0
+        self._hidden_variables: set = set()
+        self._hidden_markers: list = []
+        self._loop_depth = 0
+        self._loop_break = False
+        self._loop_continue = False
         self._log = None
         self.rc = 0
         self.last_command = ""
@@ -135,6 +140,7 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         self.rng = RandomGenerator()
         self.cclass = build_cclass(self)
         self.packages = PackageManager(Path(ado_dir) if ado_dir else None)
+        self.packages.cwd = self.cwd
         self.mata = Mata(self)
         self.evaluator = Evaluator(self)
 
@@ -183,7 +189,7 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
     def run_file(self, path) -> RunResult:
         path = self.path(str(path))
         try:
-            source = path.read_text(encoding="utf-8-sig")
+            source = self._source_text(path)
         except (OSError, UnicodeError) as error:
             return RunResult(str(error), 601)
         old = self.locals
@@ -193,6 +199,21 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         finally:
             self.locals = old
 
+    @staticmethod
+    def _source_text(path) -> str:
+        """Read a do-file, accepting Stata's legacy Windows encoding.
+
+        UTF-8 (with or without BOM) is preferred; files saved by older Stata
+        versions on Windows are cp1252, so fall back rather than failing.
+        """
+        data = Path(path).read_bytes()
+        for encoding in ("utf-8-sig", "cp1252"):
+            try:
+                return data.decode(encoding)
+            except UnicodeDecodeError:
+                continue
+        return data.decode("latin-1")
+
     def path(self, value, extension=None):
         path = Path(unquote(value))
         if extension and not path.suffix:
@@ -200,6 +221,9 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         return path if path.is_absolute() else self.cwd / path
 
     def expand(self, text):
+        # `` `: ...' `` is an extended macro function in *macro position*:
+        # Stata evaluates it and substitutes the text just like a local.
+        text = self._extended_references(text)
         # ``c()`` reports the state of the data as it is *now*, so the table
         # is rebuilt before every expansion: `` `c(k)' `` must see the
         # variables a previous ``generate`` added.
@@ -207,6 +231,52 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         return expand_macros(text, self.locals, self.globals,
                              returns=self.returns, eclass=self.estimates,
                              cclass=self.cclass)
+
+    def _extended_references(self, text):
+        """Substitute `` `: word count ...' `` references with their text."""
+        if "`:" not in text:
+            return text
+        scratch = "__openstat_inline_macro"
+        saved = self.locals.get(scratch)
+        had = scratch in self.locals
+        output: list[str] = []
+        index = 0
+        while index < len(text):
+            if text.startswith("`: ", index) or text.startswith("`:", index):
+                end = self._extended_reference_end(text, index)
+                if end < 0:
+                    output.append(text[index:])
+                    break
+                request = self.expand(text[index + 2:end].strip())
+                try:
+                    self._programming_extended_macro("local", f"{scratch}: {request}")
+                    output.append(str(self.locals.get(scratch, "")))
+                finally:
+                    if had:
+                        self.locals[scratch] = saved
+                    else:
+                        self.locals.pop(scratch, None)
+                index = end + 1
+                continue
+            output.append(text[index])
+            index += 1
+        return "".join(output)
+
+    @staticmethod
+    def _extended_reference_end(text: str, start: int) -> int:
+        """Return the ``'`` that closes the `` `: ...' `` at ``start``."""
+        depth, index = 0, start + 2
+        while index < len(text):
+            char = text[index]
+            if char == "`":
+                depth += 1
+            elif char == "'":
+                if depth:
+                    depth -= 1
+                else:
+                    return index
+            index += 1
+        return -1
 
     def evaluate(self, text):
         try:
@@ -255,47 +325,13 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
                 statement = statements[index]
                 try:
                     self._tick()
-                    raw = statement.text.strip()
-                    text = self.expand(raw).strip()
+                    text = self.expand(statement.text.strip()).strip()
                     if not text:
                         index += 1
                         continue
-                    command = text.split()[0].lower()
-                    if command.startswith("!"):
-                        # Stata's shell escape: the rest of the line is
-                        # handed to the operating system.
-                        self._shell_escape(text[1:].strip())
-                        index += 1
-                        continue
-                    command = ALIASES.get(command, command)
-                    self.last_command = command
-                    self.cclass = build_cclass(self)
-                    if command in {"forvalues", "foreach", "while", "if"} and text.endswith("{"):
-                        index = self._block(statements, index, command)
-                        continue
-                    if command == "if" and not text.endswith("{"):
-                        # Stata's single-line form: ``if exp command``.  A
-                        # following ``else`` on its own line continues the
-                        # same conditional.
-                        taken = self._inline_if(text)
-                        index += 1
-                        if index < len(statements):
-                            following = statements[index].text.strip()
-                            if following.startswith("else"):
-                                index = self._inline_else(statements, index, taken)
-                                continue
-                        continue
-                    if command == "else":
-                        index = self._block(statements, index, "else")
-                        continue
-                    if command == "program" and re.match(r"prog(?:ram)?\s+(?:define\s+)?", text) \
-                            and not text.startswith("program drop"):
-                        index = self._define_program(statements, index)
-                        continue
-                    if text in {"mata", "mata:"}:
-                        index = self._mata_block(statements, index)
-                        continue
-                    self.command(text)
+                    index = self._statement(statements, index, text)
+                    if self._loop_break or self._loop_continue:
+                        return
                 except (StataError, MacroError, SyntaxError_, ValueError, OSError,
                         KeyError, TypeError, IndexError) as ex:
                     if not isinstance(ex, StataError):
@@ -303,9 +339,105 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
                     if ex.line is None:
                         ex.line = statement.line
                     raise ex
-                index += 1
         finally:
             self._depth -= 1
+
+    #: Prefixes that change how the rest of a statement runs.
+    _PREFIXES = ("quietly", "capture", "noisily")
+
+    def _statement(self, statements, index, text):
+        """Run one lexed statement; return the index of the next one."""
+        prefixes, body = self._peel_prefixes(text)
+        head = body.split(maxsplit=1)
+        # ``continue, break`` puts the comma right after the word, so the
+        # command token has to shed it before the alias lookup.
+        word = head[0].lower().rstrip(",") if head else ""
+        command = ALIASES.get(word, word)
+        if command.startswith("!"):
+            # Stata's shell escape: the rest of the line goes to the OS.
+            self._shell_escape(body[1:].strip())
+            return index + 1
+        self.last_command = command
+        self.cclass = build_cclass(self)
+        if body.endswith("{"):
+            if command in {"forvalues", "foreach", "while", "if", "else"} or prefixes:
+                return self._block(statements, index, command, prefixes)
+            raise StataError(f"command {command} is not implemented in OpenStat", 199)
+        if prefixes:
+            if command == "program" and re.match(r"prog(?:ram)?\s+(?:define\s+)?", body) \
+                    and not body.startswith("program drop"):
+                self._apply_prefixes(prefixes, lambda: None)
+                return self._define_program(statements, index, body)
+            self._apply_prefixes(prefixes, lambda: self.command(body))
+            return index + 1
+        if command == "continue":
+            rest = body[len("continue"):].strip()
+            if "break" in [word.lower().strip(",") for word in tokens(rest)]:
+                self._loop_break = True
+            else:
+                self._loop_continue = True
+            return index + 1
+        if command == "break":
+            self._loop_break = True
+            return index + 1
+        if command == "if":
+            taken = self._inline_if(body)
+            cursor = index + 1
+            if cursor < len(statements) and statements[cursor].text.strip().startswith("else"):
+                cursor = self._else_chain(statements, cursor, taken)
+            return cursor
+        if command == "else":
+            return self._else_chain(statements, index, False)
+        if command == "program" and re.match(r"prog(?:ram)?\s+(?:define\s+)?", body) \
+                and not body.startswith("program drop"):
+            return self._define_program(statements, index, body)
+        if body in {"mata", "mata:"}:
+            return self._mata_block(statements, index)
+        self.command(body)
+        return index + 1
+
+    def _peel_prefixes(self, text):
+        """Split stacked ``quietly``/``capture``/``noisily`` prefixes off."""
+        prefixes, body = [], text
+        while True:
+            head = body.split(maxsplit=1)
+            if len(head) < 2:
+                break
+            word = ALIASES.get(head[0].lower(), head[0].lower())
+            if word not in self._PREFIXES:
+                break
+            prefixes.append(word)
+            body = head[1].strip()
+        return prefixes, body
+
+    def _apply_prefixes(self, prefixes, action):
+        """Run ``action`` under Stata's prefix semantics.
+
+        ``quietly`` suppresses output, ``capture`` suppresses output *and*
+        turns an error into ``r(###)`` with ``_rc`` set, and ``noisily``
+        restores output inside a quiet context.
+        """
+        if not prefixes:
+            action()
+            return
+        saved_quiet = self._quiet
+        capture = "capture" in prefixes
+        if capture or "quietly" in prefixes:
+            self._quiet += 1
+        if "noisily" in prefixes:
+            self._quiet = 0
+        try:
+            action()
+            self.rc = 0
+        except (StataError, MacroError, SyntaxError_, ValueError, OSError,
+                KeyError, TypeError, IndexError) as ex:
+            if not capture:
+                raise
+            self.rc = getattr(ex, "rc", 198)
+        finally:
+            self._quiet = saved_quiet
+            if capture:
+                self.locals["_rc"] = str(self.rc)
 
     def _inline_if(self, text) -> bool:
         """Run Stata's single-line ``if exp command`` form.
@@ -321,29 +453,52 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             raise StataError("if requires a condition")
         if self._condition(self.expand(condition)):
             if command:
-                self.command(command)
+                # Route through the statement dispatcher so flow-of-control
+                # commands (``continue``, ``break``) and prefixes behave as
+                # they do on their own line.
+                self._statement([Statement(command, None)], 0, command)
             return True
         return False
 
-    def _inline_else(self, statements, index, taken) -> int:
-        """Run the ``else`` that follows a single-line ``if``."""
-        text = statements[index].text.strip()
-        if text.startswith("else if"):
-            body = text[len("else if"):].strip()
-            condition, command = self._split_condition(body)
-            if not condition:
-                raise StataError("if requires a condition")
-            if self._condition(self.expand(condition)):
-                if command:
-                    self.command(command)
-                return index + 1
-            return index + 1
-        if taken:
-            return index + 1
-        command = text[len("else"):].strip()
-        if command:
-            self.command(command)
-        return index + 1
+    def _else_chain(self, statements, cursor, taken):
+        """Consume ``else``/``else if`` alternatives after an ``if``.
+
+        A skipped alternative is consumed without expanding or evaluating its
+        condition, so ``else if unknown_name`` cannot fail once a branch has
+        been taken.
+        """
+        while cursor < len(statements):
+            text = statements[cursor].text.strip()
+            if not text.startswith("else"):
+                break
+            if text.endswith("{"):
+                end = self._block_end(statements, cursor)
+                if not taken:
+                    self._execute(statements[cursor + 1:end])
+                    taken = True
+                cursor = end + 1
+                continue
+            if text.startswith("else if"):
+                body = text[len("else if"):].strip()
+                cursor += 1
+                if taken:
+                    continue
+                condition, command = self._split_condition(body)
+                if not condition:
+                    raise StataError("if requires a condition")
+                if self._condition(self.expand(condition)):
+                    taken = True
+                    if command:
+                        self.command(command)
+                continue
+            cursor += 1
+            if taken:
+                continue
+            command = text[len("else"):].strip()
+            if command:
+                self.command(command)
+            taken = True
+        return cursor
 
     #: Commands that may follow an ``if`` on the same line.
     _IF_COMMANDS = {
@@ -366,29 +521,42 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         "confirm", "about", "help", "sleep", "timer", "erase", "type",
         "shell", "more", "macro", "total", "mean", "centile", "tabstat",
         "codebook", "inspect", "mata:", "note", "notes", "dropvars",
+        "error", "continue", "break", "do", "run", "include", "numlist",
+        "return", "estimates", "adopath", "more", "discard", "putexcel",
     }
 
     def _split_condition(self, body: str) -> tuple[str, str]:
         """Split ``if`` text into its condition and the command that follows.
 
-        The command begins at the first word that names a command, except
-        where that word is part of the expression: ``if tab == 1`` keeps
-        ``tab`` as a variable because it is followed by an operator.
+        The command begins at the first word that names a command.  A word
+        that is a variable, a macro or a function call belongs to the
+        expression, so ``if x == 1`` and ``if missing(x) local y 2`` keep
+        their leading identifiers.
         """
         words = self._expression_words(body)
         for position, (word, start, end) in enumerate(words):
-            if word.lower() not in self._IF_COMMANDS:
-                continue
             following = words[position + 1][0] if position + 1 < len(words) else ""
             if following in {"==", "!=", "<", ">", "<=", ">=", "&", "|", "+", "-",
                              "*", "/", "^", "==="}:
                 # The word is part of the expression, not a command.
                 continue
-            if position == 0 and not body[:start].strip():
-                # The condition would be empty; treat the word as part of it.
+            if not self._starts_command(word, body, end):
                 continue
             return body[:start].strip(), body[start:].strip()
         return body.strip(), ""
+
+    def _starts_command(self, word, body, end):
+        """Whether ``word`` begins a command rather than continuing an expression."""
+        lowered = word.lower()
+        if lowered in self._IF_COMMANDS:
+            return True
+        if end < len(body) and body[end] in "([":
+            return False
+        if lowered in self.locals or lowered in self.globals or lowered in self.scalars:
+            return False
+        if any(lowered == str(name).lower() for name in self.data.columns):
+            return False
+        return not lowered.startswith("_")
 
     def _expression_words(self, body: str) -> list[tuple[str, int, int]]:
         """Return the (word, start, end) triples of a command's argument list.
@@ -397,29 +565,13 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         contents never look like a command name.
         """
         words: list[tuple[str, int, int]] = []
-        depth, quote, compound, index = 0, False, False, 0
+        depth, index = 0, 0
         while index < len(body):
+            end = quoted_end(body, index)
+            if end is not None:
+                index = end
+                continue
             char = body[index]
-            if compound:
-                if char == '"' and not quote:
-                    compound = False
-                else:
-                    quote = not quote
-                index += 1
-                continue
-            if quote:
-                if char == '"':
-                    quote = False
-                index += 1
-                continue
-            if body.startswith('`"', index):
-                compound = True
-                index += 2
-                continue
-            if char == '"':
-                quote = True
-                index += 1
-                continue
             if char in "([{":
                 depth += 1
                 index += 1
@@ -437,12 +589,8 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             index += 1
         return words
 
-    def _block(self, statements, index, command):
-        """Execute a braced block: loops, if/else and program bodies.
-
-        The block header is expanded lazily so that a ``while`` condition
-        sees the current value of a loop macro on every iteration.
-        """
+    def _block_end(self, statements, index):
+        """Return the index of the ``}`` that closes the block at ``index``."""
         depth, cursor = 1, index + 1
         while cursor < len(statements):
             value = statements[cursor].text.strip()
@@ -451,78 +599,79 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             elif value == "}":
                 depth -= 1
                 if depth == 0:
-                    break
+                    return cursor
             cursor += 1
-        if depth:
-            raise StataError("unclosed brace")
-        body = statements[index + 1:cursor]
+        raise StataError("unclosed brace")
+
+    def _block(self, statements, index, command, prefixes=()):
+        """Execute a braced block: loops, if/else, prefixed and bare blocks.
+
+        The block header is expanded lazily so that a ``while`` condition
+        sees the current value of a loop macro on every iteration.
+        """
+        end = self._block_end(statements, index)
+        body = statements[index + 1:end]
         raw_header = statements[index].text.strip()[:-1].strip()
-        cursor += 1
+        header_prefixes, header_body = self._peel_prefixes(raw_header)
+        prefixes = tuple(prefixes) + tuple(header_prefixes)
+        cursor = end + 1
         if command == "forvalues":
-            self._forvalues(self.expand(raw_header), body)
+            self._apply_prefixes(prefixes, lambda: self._forvalues(header_body, body))
         elif command == "foreach":
-            self._foreach(self.expand(raw_header), body)
+            self._apply_prefixes(prefixes, lambda: self._foreach(header_body, body))
         elif command == "while":
-            condition = raw_header[5:].strip()
-            while self._condition(self.expand(condition)):
-                self._tick()
-                self._execute(body)
+            condition = header_body[len("while"):].strip()
+
+            def loop():
+                self._loop_depth += 1
+                try:
+                    while self._condition(self.expand(condition)):
+                        self._tick()
+                        self._loop_continue = False
+                        self._execute(body)
+                        if self._loop_break:
+                            break
+                finally:
+                    self._loop_break = self._loop_continue = False
+                    self._loop_depth -= 1
+
+            self._apply_prefixes(prefixes, loop)
         elif command == "if":
-            cursor = self._if_chain(statements, index, cursor, body, raw_header)
+            cursor = self._if_chain(statements, index, cursor, body,
+                                    header_body[2:].strip(), prefixes)
         elif command == "else":
-            # An ``else`` block is consumed by the ``if`` handler above.
+            # An ``else`` block is consumed by the ``if`` handler.
             return cursor
+        else:
+            self._apply_prefixes(prefixes, lambda: self._execute(body))
         return cursor
 
-    def _if_chain(self, statements, index, cursor, body, raw_header):
+    def _if_chain(self, statements, index, cursor, body, condition, prefixes=()):
         """Run an ``if`` block and any ``else if``/``else`` alternatives."""
-        if self._condition(self.expand(raw_header[2:].strip())):
-            self._execute(body)
+        if self._condition(self.expand(condition)):
+            self._apply_prefixes(prefixes, lambda: self._execute(body))
             return self._skip_alternatives(statements, cursor)
-        # The condition failed: look for the next alternative.
         while cursor < len(statements):
             text = statements[cursor].text.strip()
             if not text.startswith("else"):
                 break
-            if text.startswith("else if"):
-                depth, end = 1, cursor + 1
-                while end < len(statements):
-                    value = statements[end].text.strip()
-                    if value.endswith("{"):
-                        depth += 1
-                    elif value == "}":
-                        depth -= 1
-                        if depth == 0:
-                            break
-                    end += 1
-                if depth:
-                    raise StataError("unclosed brace")
+            if text.endswith("{"):
+                end = self._block_end(statements, cursor)
                 alternative = statements[cursor + 1:end]
-                condition = text[len("else if"):].strip()[:-1].strip()
-                if self._condition(self.expand(condition)):
-                    self._execute(alternative)
-                    return self._skip_alternatives(statements, end + 1)
                 cursor = end + 1
-                continue
-            # A plain ``else`` block.
-            if not text.endswith("{"):
-                # Stata's single-line form: ``else command``.
-                self.command(text[len("else"):].strip())
-                return cursor + 1
-            depth, end = 1, cursor + 1
-            while end < len(statements):
-                value = statements[end].text.strip()
-                if value.endswith("{"):
-                    depth += 1
-                elif value == "}":
-                    depth -= 1
-                    if depth == 0:
-                        break
-                end += 1
-            if depth:
-                raise StataError("unclosed brace")
-            self._execute(statements[cursor + 1:end])
-            return end + 1
+                if text.startswith("else if"):
+                    alternative_condition = text[len("else if"):-1].strip()
+                    if self._condition(self.expand(alternative_condition)):
+                        self._apply_prefixes(prefixes, lambda: self._execute(alternative))
+                        return self._skip_alternatives(statements, cursor)
+                    continue
+                self._apply_prefixes(prefixes, lambda: self._execute(alternative))
+                return cursor
+            # A single-line ``else command``.
+            cursor += 1
+            self._apply_prefixes(
+                prefixes, lambda: self.command(text[len("else"):].strip()))
+            return cursor
         return cursor
 
     def _skip_alternatives(self, statements, cursor):
@@ -532,39 +681,29 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             if not text.startswith("else"):
                 break
             if not text.endswith("{"):
-                # Stata's single-line form: ``else command``.
                 cursor += 1
                 continue
-            depth, end = 1, cursor + 1
-            while end < len(statements):
-                value = statements[end].text.strip()
-                if value.endswith("{"):
-                    depth += 1
-                elif value == "}":
-                    depth -= 1
-                    if depth == 0:
-                        break
-                end += 1
-            if depth:
-                raise StataError("unclosed brace")
-            cursor = end + 1
+            cursor = self._block_end(statements, cursor) + 1
         return cursor
 
     def _forvalues(self, header, body):
-        match = re.fullmatch(
-            r"\w+\s+(\w+)\s*=\s*(-?\d+)\s*(?:/\s*(-?\d+)|\(\s*(-?\d+)\s*\)\s*(-?\d+))", header)
+        match = re.fullmatch(r"\w+\s+(\w+)\s*=\s*(.+)", header, re.S)
         if not match:
-            raise StataError("unsupported forvalues range")
-        name = match[1]
-        start = int(match[2])
-        step = int(match[4]) if match[4] else 1
-        end = int(match[5] or match[3])
-        if step == 0:
-            raise StataError("zero loop increment")
-        for value in range(start, end + (1 if step > 0 else -1), step):
-            self._tick()
-            self.locals[name] = str(value)
-            self._execute(body)
+            raise StataError("invalid forvalues", 198)
+        name, spec = match[1], match[2].strip()
+        values = self._numlist(spec, maximum=160000).split()
+        self._loop_depth += 1
+        try:
+            for value in values:
+                self._tick()
+                self.locals[name] = value
+                self._loop_continue = False
+                self._execute(body)
+                if self._loop_break:
+                    break
+        finally:
+            self._loop_break = self._loop_continue = False
+            self._loop_depth -= 1
 
     def _foreach(self, header, body):
         match = re.fullmatch(
@@ -577,33 +716,29 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             values = str(self.locals.get(values, ""))
         elif source == "of global":
             values = str(self.globals.get(values, ""))
-        elif source == "of varlist":
-            values = " ".join(self.varlist(values))
-        elif source == "of newvarlist":
+        elif source in {"of varlist", "of newvarlist"}:
             values = " ".join(self.varlist(values))
         elif source == "of numlist":
             values = self._numlist(values)
-        for value in tokens(values):
-            self._tick()
-            self.locals[name] = unquote(value)
-            self._execute(body)
+        self._loop_depth += 1
+        try:
+            for value in tokens(values):
+                self._tick()
+                self.locals[name] = unquote(value)
+                self._loop_continue = False
+                self._execute(body)
+                if self._loop_break:
+                    break
+        finally:
+            self._loop_break = self._loop_continue = False
+            self._loop_depth -= 1
 
-    def _numlist(self, text: str) -> str:
-        text = text.strip()
-        match = re.fullmatch(r"(-?\d+)\s*/\s*(-?\d+)", text)
-        if match:
-            return " ".join(str(value) for value in range(int(match[1]), int(match[2]) + 1))
-        match = re.fullmatch(r"(-?\d+)\s*\(\s*(-?\d+)\s*\)\s*(-?\d+)", text)
-        if match:
-            start, step, end = int(match[1]), int(match[2]), int(match[3])
-            if step == 0:
-                raise StataError("zero numlist increment")
-            return " ".join(str(value) for value in
-                            range(start, end + (1 if step > 0 else -1), step))
-        return " ".join(tokens(text))
+    def _numlist(self, text: str, maximum=1600) -> str:
+        """Expand a Stata ``numlist`` and return it as space-separated text."""
+        from .programming import numlist
+        return " ".join(numlist(text.strip(), maximum=maximum))
 
-    def _define_program(self, statements, index):
-        text = statements[index].text.strip()
+    def _define_program(self, statements, index, text):
         parts = split_outside(text)
         head = tokens(parts[0])
         name = head[2] if len(head) > 2 and head[1] == "define" else head[1]
@@ -634,19 +769,34 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
     # Options and variable lists
     # ------------------------------------------------------------------
     def options(self, text, allowed):
+        """Read a comma-separated option list using the shared parser.
+
+        Option values may contain commas, quotes and nested parentheses, so
+        this delegates to :func:`openstat.parser.parse_options` instead of
+        re-deriving the grammar here.
+        """
+        cleaned = text.strip()
+        if cleaned.startswith(","):
+            cleaned = cleaned[1:]
         output = {}
-        for match in re.finditer(r"([A-Za-z_]\w*)(?:\(([^()]*)\))?|\S+", text):
-            if not match[1]:
-                raise StataError(f"invalid option {match[0]}")
-            name = match[1].lower()
+        try:
+            parsed = parse_options(cleaned)
+        except ValueError as error:
+            raise StataError(str(error), 198) from error
+        for name, value in parsed:
             if name not in allowed:
                 raise StataError(f"option {name} not allowed", 198)
-            output[name] = match[2] if match[2] is not None else True
+            if name in output:
+                raise StataError(f"option {name} specified more than once", 198)
+            output[name] = value
         return output
 
     def varlist(self, text, default=True):
+        hidden = getattr(self, "_hidden_variables", ())
         if not text.strip():
-            return list(self.data.columns) if default else []
+            if not default:
+                return []
+            return [str(column) for column in self.data.columns if column not in hidden]
         result = []
         for token in text.split():
             if "-" in token and not any(c in token for c in "*?") and not token.startswith("-"):
@@ -694,16 +844,17 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
                 depth += 1
             elif char in ")]}":
                 depth -= 1
-            elif depth == 0:
-                for word in (" if ", " in "):
-                    if text.startswith(word, index):
-                        positions.append((index, word.strip()))
+            elif depth == 0 and (index == 0 or text[index - 1].isspace()):
+                for word in ("if", "in"):
+                    end = index + len(word)
+                    if text.startswith(word, index) and (end == len(text) or text[end].isspace()):
+                        positions.append((index, word))
             index += 1
         mask = pd.Series(True, index=self.data.index)
         base = text[:positions[0][0]].strip() if positions else text.strip()
         for k, (position, kind) in enumerate(positions):
             end = positions[k + 1][0] if k + 1 < len(positions) else None
-            value = text[position + len(kind) + 2:end if end is not None else None].strip()
+            value = text[position + len(kind):end if end is not None else None].strip()
             if kind == "if":
                 mask &= pd.Series(truth(self.evaluate(value)), index=self.data.index).astype(bool)
             else:
@@ -763,8 +914,14 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
     def command(self, text):
         self._tick()
         words = text.split(maxsplit=1)
-        command = ALIASES.get(words[0].lower(), words[0].lower())
+        head = words[0]
         arg = words[1].strip() if len(words) > 1 else ""
+        if head.endswith(","):
+            # ``exit, clear`` and friends: the comma is a delimiter, not part
+            # of the command name.
+            head = head.rstrip(",")
+            arg = ("," + arg) if arg else ","
+        command = ALIASES.get(head.lower(), head.lower())
         if command in {"capture", "quietly", "noisily"}:
             if not arg:
                 raise StataError("prefix requires command")
@@ -789,6 +946,8 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             self.rc = 0
         if command in {"by", "bysort"}:
             self._by(arg, sort=command == "bysort")
+            return
+        if self._mixin_command(command, arg):
             return
         if command == "clear":
             if arg not in {"", "all"}:
@@ -973,13 +1132,14 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             self._package(command, arg)
             return
         if command in {"cd", "pwd", "mkdir", "dir", "ls", "confirm", "log", "about", "help",
-                       "exit", "sleep", "timer", "erase", "type", "file", "shell", "more"}:
+                       "exit", "error", "sleep", "timer", "erase", "type", "file", "shell",
+                       "more"}:
             self._system(command, arg)
             return
         if command in self.programs:
             self._call_program(command, arg)
             return
-        ado = self.packages.find(command)
+        ado = self._find_ado(command)
         if ado:
             self._execute(lex(ado.read_text(encoding="utf-8-sig")))
             if command in self.programs:
@@ -987,6 +1147,20 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
                 return
             raise StataError(f"{command}.ado did not define {command}", 199)
         raise StataError(f"command {command} is not implemented in OpenStat", 199)
+
+    def _mixin_command(self, command, arg):
+        """Let the command-group mixins claim a command before the engine does.
+
+        Each mixin owns one family of commands and returns ``True`` when it
+        handled the call.  The engine keeps its own dispatch table for
+        everything else, so a new command family can be added without
+        growing this method.
+        """
+        for handler in (self._programming, self._extended_data,
+                        self._output_command, self._panel_command):
+            if handler(command, arg):
+                return True
+        return False
 
     def _shell_escape(self, command: str) -> None:
         """Run a command in the operating system, as Stata's ``!`` does.
@@ -1013,13 +1187,27 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
     # Macros
     # ------------------------------------------------------------------
     def _macro(self, command, arg):
+        increment = re.fullmatch(r"\s*(\+\+|--)?\s*(\w+)\s*(\+\+|--)?\s*", arg)
+        if increment and (increment[1] or increment[3]):
+            name = increment[2]
+            store = self.locals if command == "local" else self.globals
+            try:
+                current = int(str(store.get(name, "0") or "0").strip())
+            except ValueError as ex:
+                raise StataError(f"macro {name} is not an integer", 7) from ex
+            change = 1 if (increment[1] or increment[3]) == "++" else -1
+            store[name] = str(current + change)
+            self.rc = 0
+            return
         match = re.fullmatch(r"(\w+)\s*(.*)", arg, re.S)
         if not match:
             raise StataError("macro name required")
         name, value = match[1], match[2].strip()
         store = self.locals if command == "local" else self.globals
         if value.startswith(":"):
-            value = self._extended_macro(value[1:].strip())
+            self._programming_extended_macro(command, f"{name} : {value[1:].strip()}")
+            self.rc = 0
+            return
         elif value.startswith("="):
             evaluated = self.evaluate(value[1:])
             # Stata keeps the full precision of the value in the macro; it
@@ -1052,18 +1240,9 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         # Stata's macro text is the %18.0g rendering without the padding.
         return format_value(number, "%18.0g").strip()
 
-    def _extended_macro(self, text):
-        """Evaluate ``: word count ...`` style extended macro functions."""
-        text = text.strip()
-        match = re.match(r"([A-Za-z_]\w*)\s*(.*)", text, re.S)
-        if not match:
-            raise StataError("extended macro function required", 199)
-        name, rest = match[1].lower(), match[2].strip()
-        arguments = self._macro_arguments(rest)
-        try:
-            return apply_macro_function(name, arguments)
-        except MacroError as ex:
-            raise StataError(str(ex), 199) from ex
+    def _extended_macro(self, command, text):
+        """Delegate to the extended-macro evaluator in :mod:`openstat.programming`."""
+        return self._programming_extended_macro(command, text)
 
     def _macro_arguments(self, text):
         """Split the arguments of an extended macro function."""
@@ -1124,33 +1303,8 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         raise StataError("unsupported macro subcommand", 199)
 
     def _gettoken(self, arg):
-        """Implement ``gettoken``."""
-        match = re.fullmatch(r"(\w+)\s+(\w+)\s*:\s*(.*?)(?:,\s*(.*))?$", arg, re.S)
-        if not match:
-            raise StataError("gettoken syntax: gettoken name1 name2 : string [, options]")
-        first, second, source, options = match[1], match[2], match[3].strip(), (match[4] or "").strip()
-        parse_chars = ""
-        if options:
-            option_match = re.search(r'parse\s*\(\s*"([^"]*)"\s*\)', options)
-            if option_match:
-                parse_chars = option_match[1]
-            if re.search(r"\bmatch\s*\(", options) and not parse_chars:
-                raise StataError("gettoken match() is not implemented", 199)
-        if source == "0":
-            source = self.locals.get("0", "")
-        source = self.expand(source)
-        if parse_chars:
-            for char in parse_chars:
-                source = source.replace(char, " ")
-            parts = source.split()
-            first_value = parts[0] if parts else ""
-            rest_value = " ".join(parts[1:])
-        else:
-            parts = source.split(None, 1)
-            first_value = parts[0] if parts else ""
-            rest_value = parts[1] if len(parts) > 1 else ""
-        self.locals[first] = first_value
-        self.locals[second] = rest_value.strip()
+        """Delegate to the richer parser in :mod:`openstat.programming`."""
+        return self._programming_gettoken(arg)
 
     def _syntax_command(self, arg):
         """Implement ``syntax`` inside a program."""
@@ -1162,7 +1316,7 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         try:
             results = SyntaxCommand(self, spec).run(self.locals.get("0", ""))
         except SyntaxError_ as ex:
-            raise StataError(str(ex), 197) from ex
+            raise StataError(str(ex), getattr(ex, "rc", None) or 197) from ex
         for name, value in results.items():
             self.locals[name] = value
         self.locals["_syntax_spec"] = spec
@@ -1237,17 +1391,44 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         raise StataError("program definition requires do-file block")
 
     def _call_program(self, name, arg):
-        old = self.locals
+        """Run a defined program in its own scope.
+
+        A program sees a fresh argument scope, and the temporary variables,
+        markers and hidden names it allocates disappear when it returns --
+        including when it fails.  A program declared ``sortpreserve`` also
+        puts the observation order back the way it found it.
+        """
+        options = self.program_options.get(name, {})
+        saved_locals = self.locals
+        saved_columns = set(self.data.columns)
+        saved_hidden = set(self._hidden_variables)
+        saved_markers = list(getattr(self, "_hidden_markers", []))
+        order = None
         arguments = tokens(arg)
+        if "sortpreserve" in options:
+            order = self._hidden_name()
+            self.data[order] = np.arange(len(self.data), dtype=float)
+            self._hidden_variables.add(order)
         self.locals = {str(i): unquote(value) for i, value in enumerate(arguments, 1)}
-        self.locals["0"] = arg
+        # `` `0' `` is the whole argument string, options included -- that is
+        # what ``syntax`` parses -- while `` `1' ``.. hold the tokens.
+        self.locals["0"] = arg.strip() if arg else ""
         try:
             self._execute(self.programs[name])
         except _ExitFlow as flow:
             if flow.code:
                 raise StataError("program exited", flow.code)
         finally:
-            self.locals = old
+            if order is not None and order in self.data.columns:
+                self.data = self.data.sort_values(order, kind="stable").reset_index(drop=True)
+            created = [column for column in self.data.columns if column not in saved_columns]
+            drop = [column for column in created if column in saved_hidden
+                    or column in self._hidden_variables]
+            if drop:
+                self.data = self.data.drop(columns=drop)
+            self._hidden_variables = saved_hidden
+            self._hidden_markers = saved_markers
+            self.locals = saved_locals
 
     def _do(self, command, arg):
         arguments = tokens(arg)
@@ -1304,6 +1485,10 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
     @staticmethod
     def _format(value, fmt=None):
         if isinstance(value, str):
+            # A numeric format applied to a string leaves the text alone;
+            # a text format pads it to the field width.
+            if fmt and is_text_format(fmt):
+                return format_value(value, fmt)
             return value
         if isinstance(value, (pd.Series, np.ndarray)):
             # Stata's display shows the first element of a series.
@@ -1323,25 +1508,40 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
 
         A display command is a sequence of directives: strings, formatted
         expressions and layout directives such as ``_col()`` and
-        ``_newline()``.  The ``as`` and ``in`` modifiers change the style of
-        the directives that follow them.
+        ``_newline()``.  ``_col()`` moves the cursor to an absolute column,
+        so the engine tracks how much of the current line has been written.
+        The ``as`` and ``in`` modifiers change the style of the directives
+        that follow them.
         """
         parts: list[str] = []
         pending = arg.strip()
         fmt = None
+        column = 0
         while pending:
-            directive, pending = self._display_directive(pending)
+            try:
+                directive, pending = self._display_directive(pending)
+            except ValueError as error:
+                raise StataError(str(error), 198) from error
             if directive is None:
                 break
             kind, value = directive
             if kind == "string":
-                parts.append(value)
+                # A format applies to the item that follows it and then
+                # reverts, so ``%4s "x"`` pads but the padding does not
+                # leak into later directives.
+                try:
+                    text = self._smcl(self._format(value, fmt) if fmt else value)
+                except ValueError as error:
+                    raise StataError(str(error), 120) from error
+                fmt = None
+                parts.append(text)
+                column = len(text) if "\n" not in text else len(text.rsplit("\n", 1)[1])
             elif kind == "value":
                 # Stata evaluates each directive as it reaches it, so a
                 # failing expression leaves the earlier output in place and
                 # appends the error text to it.
                 try:
-                    parts.append(self._format(self.evaluate(value), fmt))
+                    text = self._format(self.evaluate(value), fmt)
                 except StataError as error:
                     self.emit("".join(parts) + str(error))
                     error.reported = True
@@ -1356,70 +1556,89 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
                     failure = StataError(str(error), 198)
                     failure.reported = True
                     raise failure from error
+                parts.append(text)
+                column += len(text)
+                fmt = None
             elif kind == "format":
                 fmt = value
             elif kind == "newline":
-                parts.append("\n" * int(value))
+                text = "\n" * int(value)
+                parts.append(text)
+                column = 0
             elif kind == "column":
-                parts.append(" " * int(value))
+                pad = int(value) - 1 - column
+                if pad > 0:
+                    parts.append(" " * pad)
+                    column += pad
             elif kind == "skip":
                 parts.append(" " * int(value))
+                column += int(value)
             elif kind == "tab":
                 parts.append("\t")
+                column += 1
             elif kind == "char":
-                parts.append(chr(int(value)))
+                text = chr(int(value))
+                parts.append(text)
+                column += 1
             elif kind == "continue":
                 pass
         self.emit("".join(parts))
+
+    #: SMCL character directives that ``display`` renders literally.
+    _SMCL_CHARS = {
+        "+": "+", "-": "-", "|": "|", "T": "┬", "B": "┴", "TL": "┌", "TR": "┐",
+        "BL": "└", "BR": "┘", "l": "├", "r": "┤", "t": "┬", "b": "┴",
+    }
+
+    def _smcl(self, text: str) -> str:
+        """Render the SMCL directives that appear inside displayed strings."""
+        text = re.sub(r"\{hline\s+(\d+)\}", lambda match: "─" * int(match[1]), text)
+        text = re.sub(r"\{c\s+([^}]*)\}",
+                      lambda match: self._SMCL_CHARS.get(match[1].strip(), match[1].strip()),
+                      text)
+        return text
+
+    #: Characters that continue an expression rather than start a directive.
+    _OPERATORS = set("+-*/^&|<>!=~,")
 
     def _split_expression(self, pending: str) -> tuple[str, str]:
         """Return the expression that begins a display directive.
 
         The expression runs until the next display directive, which starts
-        with a double quote, a percent sign or an underscore.  The second
-        element of the result is the text that follows it.
+        with a format, a layout directive or a new string literal.  A string
+        literal that follows an operator belongs to the same expression:
+        ``"a" + " " + "b"`` is one value, not five directives.
         """
-        depth, quote, compound, index = 0, False, False, 0
+        depth, index = 0, 0
         while index < len(pending):
+            # A string literal that does not continue an operator starts a
+            # new directive, so the expression ends before it.
+            if (depth == 0 and index > 0
+                    and (pending.startswith('"', index) or pending.startswith('`"', index))
+                    and pending[:index].rstrip()[-1:] not in self._OPERATORS):
+                return pending[:index].strip(), pending[index:]
+            end = quoted_end(pending, index)
+            if end is not None:
+                index = end
+                continue
             char = pending[index]
-            if compound:
-                if char == '"' and not quote:
-                    compound = False
-                else:
-                    quote = not quote
-                index += 1
-                continue
-            if quote:
-                if char == '"':
-                    quote = False
-                index += 1
-                continue
-            if char == '"':
-                if depth == 0:
-                    # A quote at the top level ends the expression; it
-                    # starts the next directive.
-                    break
-                quote = True
-                index += 1
-                continue
-            if pending.startswith('`"', index):
-                compound = True
-                index += 2
-                continue
             if char in "([{":
                 depth += 1
             elif char in ")]}":
                 depth -= 1
-            elif depth == 0 and char == "%":
-                break
-            elif depth == 0 and char == "_" and re.match(r"_(?:newline|column|col|skip|char|continue|tab)\b",
-                                                        pending[index:]):
-                break
+            elif depth == 0 and index > 0:
+                if char == "%":
+                    return pending[:index].strip(), pending[index:]
+                if char == "_" and re.match(
+                        r"_(?:newline|column|col|skip|char|continue|tab)\b", pending[index:]):
+                    return pending[:index].strip(), pending[index:]
+                if char in '`"' and pending[:index].rstrip()[-1:] not in self._OPERATORS:
+                    return pending[:index].strip(), pending[index:]
             index += 1
-        return pending[:index].strip(), pending[index:].lstrip()
+        return pending.strip(), ""
 
     def _display_directive(self, pending: str):
-        """Split off one display directive, returning (kind, value, rest)."""
+        """Split off one display directive, returning (kind, value), rest."""
         # Style modifiers apply to the directives that follow them.
         match = re.match(r"as\s+(\w+)\s+", pending)
         if match:
@@ -1432,16 +1651,13 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         match = re.match(r"in\s+(text|txt|result|res|error|err|input|inp)\s+", pending)
         if match:
             return self._display_directive(pending[match.end():])
-        if pending.startswith('"'):
-            match = re.match(r'"([^"\n]*)"', pending)
-            if not match:
-                raise StataError("unclosed string")
-            return ("string", match[1]), pending[match.end():].strip()
-        if pending.startswith('`"'):
-            match = re.match(r'`"([^"]*)"' + "'", pending)
-            if not match:
-                raise StataError("unclosed compound string")
-            return ("string", match[1]), pending[match.end():].strip()
+        if pending.startswith('"') or pending.startswith('`"'):
+            end = quoted_end(pending, 0)
+            rest = pending[end:].lstrip()
+            if rest[:1] not in self._OPERATORS:
+                raw = pending[:end]
+                inner = raw[2:-2] if raw.startswith('`"') else raw[1:-1]
+                return ("string", inner), rest
         if pending.startswith("%"):
             match = re.match(r"%[-+]?\d*(?:\.\d+)?[gfe](c?)|%[-+]?\d*(?:\.\d+)?s|%"
                              r"t[cdwmqhyb]|%tc.*|%td.*", pending)
@@ -1497,7 +1713,7 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         allowed = {"egen", "generate", "replace", "summarize", "count", "assert", "tabulate",
                    "list", "total", "mean"}
         body_command = ALIASES.get(body.split()[0], body.split()[0])
-        if body_command not in allowed:
+        if body_command not in allowed and body_command not in self.programs:
             raise StataError(f"by prefix not implemented for {body_command}", 199)
         original = self.data
         sorted_data = original.sort_values(sort_names, kind="stable", na_position="last").reset_index(drop=True)
@@ -1608,8 +1824,11 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             return
 
     def _summarize(self, frame, names, opt):
+        # ``meanonly`` computes the same returned values but prints nothing.
+        quiet = "meanonly" in opt
         self.returns = {"N": 0}
-        self.emit("Variable            Obs          Mean       Std. dev.           Min           Max")
+        if not quiet:
+            self.emit("Variable            Obs          Mean       Std. dev.           Min           Max")
         for name in names:
             if not pd.api.types.is_numeric_dtype(frame[name]):
                 continue
@@ -1639,6 +1858,8 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
                 m4 = (deviations ** 4).mean()
                 self.returns["skewness"] = m3 / m2 ** 1.5
                 self.returns["kurtosis"] = m4 / m2 ** 2
+            if quiet:
+                continue
             r = self.returns
             self.emit(f"{name:<18} {r['N']:>6} {r['mean']:>13.7g} {r['sd']:>13.7g} "
                       f"{r['min']:>13.7g} {r['max']:>13.7g}")
@@ -1677,6 +1898,7 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             if not path.is_dir():
                 raise StataError("directory not found", 170)
             self.cwd = path.resolve()
+            self.packages.cwd = self.cwd
             self.emit(str(self.cwd))
             return
         if command == "pwd":
@@ -1725,7 +1947,25 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
                 self.emit(f"Requested command: {arg}")
             return
         if command == "exit":
-            raise _ExitFlow(int(arg or "0"))
+            parts = split_outside(arg)
+            options = self.options(",".join(parts[1:]), {"clear", "clear_all", "nostop"}) \
+                if len(parts) > 1 else {}
+            code = 0
+            if parts and parts[0].strip():
+                code = int(self.evaluate(parts[0]))
+            if "clear" in options or "clear_all" in options:
+                self.data = pd.DataFrame()
+                self.variable_labels = {}
+                self.value_labels = {}
+                self.value_label_names = {}
+                self.formats = {}
+                self.storage_types = {}
+                self.dataset_label = ""
+            raise _ExitFlow(code)
+        if command == "error":
+            text = split_outside(arg)[0].strip()
+            code = int(self.evaluate(text)) if text else 198
+            raise StataError(f"error {code}", code)
         if command == "erase":
             path = self.path(arg)
             if not path.exists():
@@ -1767,6 +2007,9 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
     # Packages
     # ------------------------------------------------------------------
     def _package(self, command, arg):
+        # The test harness and ``cd`` can replace or rebind the package
+        # manager, so the working directory is pushed on every call.
+        self.packages.cwd = self.cwd
         if command == "sysdir":
             words = tokens(arg)
             if len(words) != 3 or words[:2] != ["set", "PLUS"]:
@@ -1774,14 +2017,12 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             self.packages = PackageManager(self.path(words[2]))
             return
         if command == "adopath":
-            if arg:
-                raise StataError("adopath edits unsupported; use sysdir set PLUS", 199)
-            self.emit(str(self.packages.root))
+            self._adopath(arg)
             return
         if command == "which":
             if " " in arg:
                 raise StataError("which requires one command")
-            path = self.packages.find(arg)
+            path = self._find_ado(arg)
             if path:
                 self.emit(str(path))
                 return
@@ -1795,19 +2036,57 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         parts = split_outside(arg)
         words = tokens(parts[0])
         opt = self.options(",".join(parts[1:]), {"replace", "from", "updating", "all"})
-        if command == "ssc" and words and words[0] == "dir":
+        source = unquote(str(opt["from"])) if "from" in opt else None
+        if words and words[0] == "dir":
             for entry in self.packages.installed():
                 self.emit(entry["name"] + " (execution compatibility unverified)")
             return
-        if len(words) != 2 or words[0] != "install":
-            raise StataError(f"{command} supports install only", 199)
-        if command == "net" and "from" not in opt:
-            raise StataError("net install requires from(URL)")
+        if len(words) != 2:
+            raise StataError(f"{command} requires an action and a package name", 199)
+        action, name = words
         try:
-            manifest = self.packages.install(words[1],
-                                             unquote(opt["from"]) if "from" in opt else None,
-                                             "replace" in opt)
-        except (PackageError, OSError) as ex:
-            raise StataError(f"package install failed: {ex}", 601) from ex
+            if action == "describe":
+                manifest = self.packages.describe(name, source)
+                self.emit(f"{manifest.get('name', name)}  {manifest.get('title', '')}".rstrip())
+                for line in manifest.get("description", []) or []:
+                    self.emit(line)
+                return
+            if action == "uninstall":
+                self.packages.uninstall(name)
+                self.emit(f"package {name} uninstalled")
+                return
+            if action != "install":
+                raise StataError(f"{command} {action} is not implemented", 199)
+            if command == "net" and source is None:
+                raise StataError("net install requires from(URL)")
+            manifest = self.packages.install(name, source, "replace" in opt,
+                                             "all" in opt)
+        except (PackageError, OSError, ValueError) as ex:
+            raise StataError(f"package {action} failed: {ex}", 601) from ex
         self.emit(f"installed {manifest['name']}: {len(manifest['files'])} files; "
                   "execution compatibility unverified")
+
+    def _adopath(self, arg):
+        """Implement ``adopath``: list, ``++`` prepend and ``-`` removal."""
+        text = arg.strip()
+        if not text:
+            for entry in getattr(self.packages, "adopath", []):
+                self.emit(str(entry))
+            return
+        if text.startswith("++"):
+            self.packages.adopath_add(unquote(text[2:].strip()), prepend=True)
+            return
+        if text.startswith("+"):
+            self.packages.adopath_add(unquote(text[1:].strip()))
+            return
+        if text.startswith("-"):
+            self.packages.adopath_remove(unquote(text[1:].strip()))
+            return
+        raise StataError("adopath accepts ++, +, - or no argument", 198)
+
+    def _find_ado(self, name):
+        """Locate ``name.ado`` on the adopath, or return ``None``."""
+        path = self.packages.find_in_path(name)
+        if path is None:
+            path = self.packages.find(name, recursive=False)
+        return Path(path) if path is not None else None

@@ -355,9 +355,14 @@ def format_value(value, fmt: str) -> str:
     if value is None:
         return "."
     if isinstance(value, str):
-        if not is_text_format(fmt):
+        match = TEXT.match(fmt.strip())
+        if not match:
             raise FormatError(f"invalid %format {fmt}")
-        return value
+        width = int(match[1])
+        if width < 0:
+            # ``%-Ns`` left-justifies; Stata never truncates the value.
+            return value.ljust(-width)
+        return value.rjust(width)
     try:
         number = float(value)
     except (TypeError, ValueError) as error:
