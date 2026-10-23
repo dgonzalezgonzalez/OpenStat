@@ -454,6 +454,39 @@ summarize x, meanonly
     assert result.output.splitlines() == ['Header      12    x', 'a "quote"  3!', 'a b', '───+──']
 
 
+def test_loop_headers_expand_macros_once_before_parsing(engine):
+    """Loop bounds are expanded before the numlist/varlist is parsed.
+
+    ``forvalues t = $start/$end`` is three tokens short of a numlist unless
+    the header is expanded first, and ``foreach x in `list'`` would iterate
+    over the literal macro reference.  A ``while`` header, by contrast, must
+    be re-expanded on every pass, so the expansion belongs to the loop
+    handlers and not to the statement walker.
+    """
+    result = engine.run('''global start 2
+global end 4
+forvalues t = $start/$end {
+    display "t=`t'"
+}
+local names a b c
+foreach x in `names' {
+    display "x=`x'"
+}
+foreach v of varlist x y {
+    display "v=`v'"
+}
+local i 0
+while `i' < 3 {
+    local i = `i' + 1
+    display "w=`i'"
+}
+''')
+    assert result.rc == 0, result.output
+    assert result.output.splitlines() == [
+        't=2', 't=3', 't=4', 'x=a', 'x=b', 'x=c', 'v=x', 'v=y',
+        'w=1', 'w=2', 'w=3']
+
+
 def test_unmodified_downloaded_distinct_optional_integration(tmp_path):
     """Set OPENSTAT_SSC_TEST_ROOT to locally downloaded packages for this QA."""
     import os

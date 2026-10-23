@@ -687,6 +687,10 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
         return cursor
 
     def _forvalues(self, header, body):
+        # The bounds are evaluated once, before the first iteration, so the
+        # header is expanded here rather than left to the statement walker
+        # (which is what a ``while`` header must not do).
+        header = self.expand(header)
         match = re.fullmatch(r"\w+\s+(\w+)\s*=\s*(.+)", header, re.S)
         if not match:
             raise StataError("invalid forvalues", 198)
@@ -706,6 +710,8 @@ class Engine(IOCommands, MetadataCommands, StatisticalCommands, GraphicsCommands
             self._loop_depth -= 1
 
     def _foreach(self, header, body):
+        # ``foreach x in `list'`` resolves its list once, before iterating.
+        header = self.expand(header)
         match = re.fullmatch(
             r"foreach\s+(\w+)\s+(in|of\s+(?:varlist|numlist|local|global|newvarlist))\s+(.*)",
             header, re.S)
