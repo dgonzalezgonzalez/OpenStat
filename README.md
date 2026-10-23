@@ -70,7 +70,7 @@ python qa/replication_run.py --list
 python qa/gap_report.py            # roll every suite into one ranked queue
 ```
 
-Current measured state: **252 passed, 4 skipped** in `pytest -q`, **10/10**
+Current measured state: **253 passed, 4 skipped** in `pytest -q`, **10/10**
 conformance cases, **20 of 21** differential cases (the SSC download case is
 opt-in), and **2/2** published replication packages on this host. Replication
 also records wall time, and OpenStat is much slower than Stata on

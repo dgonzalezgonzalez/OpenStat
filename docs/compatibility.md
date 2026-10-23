@@ -79,7 +79,7 @@ Windows host): **10/10** `qa/conformance` cases pass against Stata 19.5
 (`qa/run_differential.py`; the 21st is the optional SSC download, skipped when
 no local package copy is supplied), **2/2** published replication packages pass
 (`qa/replication_run.py`: `bdmmm_jpe_randomdata` and
-`dropout_jpe_descriptives`, both AEA/JPE), and `pytest -q` reports **252
+`dropout_jpe_descriptives`, both AEA/JPE), and `pytest -q` reports **253
 passed, 4 skipped, 90 subtests passed**. The `%w.dg` display model matches
 Stata on a 385 815-measurement corpus and 7 160 targeted probes; the RNG
 matches draw-for-draw; `describe` matches byte-for-byte. These are the
