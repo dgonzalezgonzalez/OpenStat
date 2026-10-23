@@ -17,7 +17,17 @@ set maxvar 30000
 local pkg "${pkg_root}"
 if "`pkg'" == "" local pkg "../_packages/Dropout-JPE"
 
-!unzip -o -q "`pkg'/data/nlsy97/cleaned/y97_all_tscrGPA.dta.zip" -d "`pkg'/data/nlsy97/cleaned/"
+* Unpack with Stata's own unzipfile so that no external tool is required
+* (Windows hosts have no `unzip`).  The current directory has to come back
+* to the work directory afterwards, because the reduced dataset is saved
+* next to the case, not inside the package.
+local work "`c(pwd)'"
+capture confirm file "`pkg'/data/nlsy97/cleaned/y97_all_tscrGPA.dta"
+if _rc {
+    cd "`pkg'/data/nlsy97/cleaned"
+    unzipfile "y97_all_tscrGPA.dta.zip", replace
+    cd "`work'"
+}
 
 use "`pkg'/data/nlsy97/cleaned/y97_all_tscrGPA.dta", clear
 

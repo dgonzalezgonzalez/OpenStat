@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_utc": "2026-10-23T09:25:32.452448+00:00",
+  "generated_utc": "2026-10-23T09:47:47.968171+00:00",
   "scope": "Bounded deterministic examples only. Passing does not establish arbitrary do-file, full Mata, package, or full Stata compatibility.",
   "reference_executable": "StataMP-64.exe",
   "stata_timeout_seconds": 30,
@@ -11,7 +11,7 @@
     "absolute": 1e-09
   },
   "online_ssc_enabled": false,
-  "jobs": 2,
+  "jobs": 1,
   "corpus": {
     "directory": "qa/cases",
     "discovered": 21,
@@ -42,7 +42,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 0.9664,
+        "seconds": 0.7297,
         "scalars": {
           "n": 4.0,
           "mean": 25.0
@@ -54,7 +54,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 1.0953,
+        "seconds": 1.0543,
         "scalars": {
           "n": 4.0,
           "mean": 25.0
@@ -117,7 +117,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 0.8349,
+        "seconds": 0.7152,
         "scalars": {
           "n": 7.0,
           "mean": 9.4285714285714,
@@ -137,7 +137,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 1.0456,
+        "seconds": 0.9338,
         "scalars": {
           "n": 7.0,
           "mean": 9.4285714285714,
@@ -243,7 +243,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 0.8426,
+        "seconds": 0.7515,
         "scalars": {
           "n": 4.0,
           "mean": 3.125
@@ -255,7 +255,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 1.2038,
+        "seconds": 0.9838,
         "scalars": {
           "n": 4.0,
           "mean": 3.125
@@ -375,7 +375,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 2.5514,
+        "seconds": 3.7411,
         "scalars": {
           "factor_x": 2.0151514730485,
           "factor_g1": 3.0058274409479,
@@ -400,7 +400,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 3.1142,
+        "seconds": 2.46,
         "scalars": {
           "factor_x": 2.0151514730485,
           "factor_g1": 3.0058274409479,
@@ -523,7 +523,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 2.1189,
+        "seconds": 2.6845,
         "scalars": {
           "n": 6.0
         },
@@ -534,7 +534,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 1.6976,
+        "seconds": 1.4211,
         "scalars": {
           "n": 6.0
         }
@@ -594,7 +594,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 2.8105,
+        "seconds": 4.2102,
         "scalars": {
           "twoway_b": 1.6974999634484,
           "twoway_z": -0.4013611811768,
@@ -638,7 +638,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 1.0875,
+        "seconds": 1.0219,
         "scalars": {
           "twoway_b": 1.6974999634484,
           "twoway_z": -0.4013611811768,
@@ -877,7 +877,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 2.6204,
+        "seconds": 3.5693,
         "scalars": {
           "iv_b": 1.9981415211076,
           "iv_x": 0.49927500193959,
@@ -895,7 +895,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 2.8069,
+        "seconds": 2.6309,
         "scalars": {
           "iv_b": 1.9981415211076,
           "iv_x": 0.49927500193959,
@@ -975,7 +975,7 @@
       "stata": {
         "status": "completed",
         "rc": 198,
-        "seconds": 0.7981,
+        "seconds": 0.8814,
         "scalars": {},
         "version": "19.5"
       },
@@ -984,7 +984,7 @@
         "rc": 198,
         "line": 4,
         "version": "0.1.0",
-        "seconds": 0.9742,
+        "seconds": 0.9956,
         "scalars": {}
       },
       "comparison": {
@@ -1016,7 +1016,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 5.9292,
+        "seconds": 7.7146,
         "scalars": {
           "b_x": 0.0,
           "b_z": 3.0531133177192e-16,
@@ -1034,7 +1034,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 2.857,
+        "seconds": 2.5544,
         "scalars": {
           "b_x": 0.0,
           "b_z": -5.32292537811e-17,
@@ -1121,7 +1121,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 0.8284,
+        "seconds": 0.7662,
         "scalars": {
           "total": 18.0,
           "program": 14.0,
@@ -1135,7 +1135,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 0.9678,
+        "seconds": 0.9456,
         "scalars": {
           "total": 18.0,
           "program": 14.0,
@@ -1194,7 +1194,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 0.7959,
+        "seconds": 0.8848,
         "scalars": {
           "m11": 5.0,
           "m12": 11.0,
@@ -1207,7 +1207,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 0.9449,
+        "seconds": 0.9833,
         "scalars": {
           "m11": 5.0,
           "m12": 11.0,
@@ -1258,7 +1258,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 0.9519,
+        "seconds": 0.935,
         "scalars": {
           "matched": 3.0,
           "master_only": 1.0,
@@ -1271,7 +1271,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 1.1108,
+        "seconds": 1.0309,
         "scalars": {
           "matched": 3.0,
           "master_only": 1.0,
@@ -1339,7 +1339,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 2.5778,
+        "seconds": 4.0318,
         "scalars": {
           "lag": 1.2000000476837,
           "gap_missing": 1.0,
@@ -1365,7 +1365,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 1.148,
+        "seconds": 0.9556,
         "scalars": {
           "lag": 1.2000000476837,
           "gap_missing": 1.0,
@@ -1494,7 +1494,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 0.8893,
+        "seconds": 0.8219,
         "scalars": {
           "preserved_n": 2.0,
           "restored_n": 5.0,
@@ -1507,7 +1507,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 0.9767,
+        "seconds": 0.9458,
         "scalars": {
           "preserved_n": 2.0,
           "restored_n": 5.0,
@@ -1561,7 +1561,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 2.6508,
+        "seconds": 3.6314,
         "scalars": {
           "b_x": 1.9787234042553,
           "b_z": 0.48936170212766,
@@ -1580,7 +1580,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 2.8633,
+        "seconds": 2.5817,
         "scalars": {
           "b_x": 1.9787234042553,
           "b_z": 0.48936170212766,
@@ -1667,7 +1667,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 0.968,
+        "seconds": 0.9826,
         "scalars": {
           "long_n": 6.0,
           "last_x": 31.0,
@@ -1681,7 +1681,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 0.9618,
+        "seconds": 0.9298,
         "scalars": {
           "long_n": 6.0,
           "last_x": 31.0,
@@ -1752,7 +1752,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 2.4968,
+        "seconds": 3.5848,
         "scalars": {
           "b_x": 1.9787234042553,
           "b_z": 0.48936170212766,
@@ -1776,7 +1776,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 2.8815,
+        "seconds": 3.5424,
         "scalars": {
           "b_x": 1.9787234042553,
           "b_z": 0.48936170212766,
@@ -1892,7 +1892,7 @@
       "stata": {
         "status": "completed",
         "rc": 111,
-        "seconds": 0.8752,
+        "seconds": 1.0418,
         "scalars": {},
         "version": "19.5"
       },
@@ -1901,7 +1901,7 @@
         "rc": 111,
         "line": 4,
         "version": "0.1.0",
-        "seconds": 0.9889,
+        "seconds": 1.0745,
         "scalars": {}
       },
       "comparison": {
@@ -1938,7 +1938,7 @@
       "stata": {
         "status": "completed",
         "rc": 0,
-        "seconds": 0.8372,
+        "seconds": 0.883,
         "scalars": {
           "recursive_replace": 1.0,
           "recursive_sequence": 5.0,
@@ -1959,7 +1959,7 @@
         "rc": 0,
         "line": null,
         "version": "0.1.0",
-        "seconds": 1.0547,
+        "seconds": 1.0276,
         "scalars": {
           "recursive_replace": 1.0,
           "recursive_sequence": 5.0,
@@ -2070,7 +2070,7 @@
       "stata": {
         "status": "completed",
         "rc": 199,
-        "seconds": 0.8697,
+        "seconds": 0.9636,
         "scalars": {},
         "version": "19.5"
       },
@@ -2079,7 +2079,7 @@
         "rc": 199,
         "line": 3,
         "version": "0.1.0",
-        "seconds": 0.9582,
+        "seconds": 1.0416,
         "scalars": {}
       },
       "comparison": {

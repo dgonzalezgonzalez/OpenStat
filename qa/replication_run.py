@@ -33,10 +33,17 @@ import tempfile
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
+
+# The oracle launcher is shared with ``qa/stata_run.py`` so that Windows and
+# macOS find their own installation instead of a hard-coded path.
+from stata_run import batch_flag, detect_stata, stata_cwd, stata_quote  # noqa: E402
+
+ROOT = HERE.parent
 CACHE = ROOT / "qa" / "replication" / "_packages"
-STATA_ROOT = Path("/Applications/StataNow")
-STATA_EXE = STATA_ROOT / "StataSE.app/Contents/MacOS/stata-se"
+STATA_EXE = detect_stata()
 
 SENTINEL = re.compile(
     r"^\s*__OPENSTAT__(\w+)\s*=\s*([+\-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+\-]?\d+)?|\.)\s*$")
@@ -84,29 +91,35 @@ def _stata_wrapper(work: Path, do_file: Path, env: dict | None = None) -> Path:
     prologue = ""
     for key, value in (env or {}).items():
         prologue += f'global {key} "{value}"\n'
+    log_path = stata_quote(work / "stata.log")
+    work_path = stata_quote(work)
+    result_path = stata_quote(work / "stata_result.txt")
     wrapper.write_text(
         "set more off\nset linesize 255\n"
         "capture log close _all\n"
-        f'log using "{work / "stata.log"}", text replace name(harness)\n'
-        f'cd "{work}"\n'
+        f'log using "{log_path}", text replace name(harness)\n'
+        f'cd "{work_path}"\n'
         f"{prologue}"
-        f'capture noisily do "{do_file}"\n'
+        f'capture noisily do "{stata_quote(do_file)}"\n'
         "local qa_result = _rc\n"
         "display \"__OPENSTAT_RETURN_CODE__=\" `qa_result'\n"
-        f'file open _qa using "{work / "stata_result.txt"}", write replace text\n'
+        f'file open _qa using "{result_path}", write replace text\n'
         "file write _qa \"__OPENSTAT_RETURN_CODE__=\" `qa_result'\n"
         "file close _qa\n"
         "capture log close _all\n"
-        "exit, clear\n", encoding="utf-8")
+        "exit, clear\n", encoding="utf-8", newline="\n")
     return wrapper
 
 
 def stata_run(do_file: Path, work: Path, timeout: float = 1800.0,
               env: dict | None = None) -> dict:
     """Run a do-file in the licensed Stata 19.5 installation."""
+    if STATA_EXE is None:
+        raise RuntimeError("no Stata installation found; set STATA_EXE")
     wrapper = _stata_wrapper(work, do_file, env)
     started = time.perf_counter()
-    process = subprocess.Popen([str(STATA_EXE), "-b", "do", str(wrapper)], cwd=STATA_ROOT,
+    process = subprocess.Popen([str(STATA_EXE), batch_flag(), "do", str(wrapper)],
+                               cwd=str(stata_cwd(work)),
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         process.wait(timeout=timeout)
@@ -271,6 +284,11 @@ def main(argv: list[str] | None = None) -> int:
         if not cases:
             print("no matching case", file=sys.stderr)
             return 2
+    if STATA_EXE is None:
+        print("no Stata installation found; set STATA_EXE to the oracle executable",
+              file=sys.stderr)
+        return 2
+    print(f"oracle: {STATA_EXE}")
     failures = 0
     report = []
     for case in cases:
